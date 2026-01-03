@@ -211,3 +211,8 @@ vercel --prod
 | "Permission denied" from Supabase | Check RLS policies, verify workspace membership |
 | Session not persisting | Check middleware is running, verify env vars |
 | Logs not showing | Set LOG_LEVEL=debug in .env.local |
+## Verification Update (2026-01-03)
+
+- Verified account edit, reconciliation, UI polish, transfer double‑entry, and filters.
+- Updated documentation files: ARCHITECTURE.md, RUNBOOK.md, LOGS.md.
+

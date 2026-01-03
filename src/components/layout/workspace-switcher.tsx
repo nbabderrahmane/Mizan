@@ -69,8 +69,8 @@ export function WorkspaceSwitcher({
                     >
                         <Check
                             className={`mr-2 h-4 w-4 ${currentWorkspaceId === workspace.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
+                                ? "opacity-100"
+                                : "opacity-0"
                                 }`}
                         />
                         <span className="truncate">{workspace.name}</span>

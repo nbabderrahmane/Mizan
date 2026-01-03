@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AccountList } from "@/components/accounts/account-card";
+import { CreateAccountDialog } from "@/components/accounts/create-account-dialog";
+import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
+import { ReconcileAccountDialog } from "@/components/accounts/reconcile-account-dialog";
+import type { AccountWithBalance } from "@/lib/actions/account";
+import { archiveAccount } from "@/lib/actions/account";
+
+interface AccountsPageClientProps {
+    workspaceId: string;
+    accounts: AccountWithBalance[];
+    canManage: boolean;
+}
+
+export function AccountsPageClient({
+    workspaceId,
+    accounts,
+    canManage,
+}: AccountsPageClientProps) {
+    const router = useRouter();
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [accountToEdit, setAccountToEdit] = useState<AccountWithBalance | null>(null);
+    const [accountToReconcile, setAccountToReconcile] = useState<AccountWithBalance | null>(null);
+
+    // Old handleEdit was redirecting to detail page (not implemented yet).
+    // New behavior: Open Edit Dialog.
+    function handleEdit(account: AccountWithBalance) {
+        setAccountToEdit(account);
+    }
+
+    function handleReconcile(account: AccountWithBalance) {
+        setAccountToReconcile(account);
+    }
+
+    async function handleArchive(accountId: string) {
+        if (!confirm("Are you sure you want to archive this account?")) return;
+        await archiveAccount(accountId);
+        router.refresh();
+    }
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">Accounts</h1>
+                    <p className="text-muted-foreground">
+                        Manage your financial accounts
+                    </p>
+                </div>
+                {canManage && (
+                    <Button onClick={() => setIsCreateOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Account
+                    </Button>
+                )}
+            </div>
+
+            <AccountList
+                accounts={accounts}
+                onEdit={canManage ? handleEdit : undefined}
+                onReconcile={handleReconcile}
+                onArchive={canManage ? handleArchive : undefined}
+            />
+
+            {canManage && (
+                <CreateAccountDialog
+                    workspaceId={workspaceId}
+                    open={isCreateOpen}
+                    onOpenChange={setIsCreateOpen}
+                    onSuccess={() => router.refresh()}
+                />
+            )}
+
+            {canManage && accountToEdit && (
+                <EditAccountDialog
+                    account={accountToEdit}
+                    open={!!accountToEdit}
+                    onOpenChange={(open: boolean) => !open && setAccountToEdit(null)}
+                />
+            )}
+
+            {accountToReconcile && (
+                <ReconcileAccountDialog
+                    account={accountToReconcile}
+                    open={!!accountToReconcile}
+                    onOpenChange={(open: boolean) => !open && setAccountToReconcile(null)}
+                />
+            )}
+        </div>
+    );
+}

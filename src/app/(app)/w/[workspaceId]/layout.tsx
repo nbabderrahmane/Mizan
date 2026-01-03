@@ -23,6 +23,11 @@ export default async function AppLayout({
 
     // Get user's workspaces
     const workspacesResult = await listWorkspacesForUser();
+
+    if (!workspacesResult.success) {
+        // No console.error here as per instruction
+    }
+
     const workspaces = workspacesResult.success ? workspacesResult.data || [] : [];
 
     // Get current workspace ID from params

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { createWorkspace } from "@/lib/actions/workspace";
+import { signOut } from "@/app/auth/actions";
 
 export default function CreateWorkspacePage() {
     const router = useRouter();
@@ -26,7 +28,8 @@ export default function CreateWorkspacePage() {
         const result = await createWorkspace(formData);
 
         if (result.success && result.data) {
-            router.push(`/w/${result.data.id}/dashboard`);
+            // Redirect to setup wizard for new workspaces
+            router.push(`/w/${result.data.id}/setup`);
         } else {
             setError(result.error?.message || "Failed to create workspace");
         }
@@ -44,7 +47,7 @@ export default function CreateWorkspacePage() {
                         friends to manage finances together.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <form action={handleSubmit} className="space-y-4">
                         {error && (
                             <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
@@ -67,8 +70,18 @@ export default function CreateWorkspacePage() {
                             {isLoading ? "Creating..." : "Create Workspace"}
                         </Button>
                     </form>
+
+                    <div className="pt-4 border-t text-center">
+                        <form action={signOut}>
+                            <Button variant="ghost" size="sm" type="submit">
+                                <LogOut className="h-4 w-4 mr-2" />
+                                Sign out
+                            </Button>
+                        </form>
+                    </div>
                 </CardContent>
             </Card>
         </div>
     );
 }
+

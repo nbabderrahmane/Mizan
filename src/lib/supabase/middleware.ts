@@ -29,33 +29,51 @@ export async function updateSession(request: NextRequest) {
         }
     );
 
-    // IMPORTANT: Avoid writing any logic between createServerClient and
-    // supabase.auth.getUser(). A simple mistake could make your app vulnerable
-    // to security issues.
-
     const {
         data: { user },
     } = await supabase.auth.getUser();
 
+    const pathname = request.nextUrl.pathname;
+
     // Define public routes that don't require authentication
     const publicRoutes = ["/", "/auth/sign-in", "/auth/sign-up", "/auth/callback"];
-    const isPublicRoute = publicRoutes.some(
-        (route) => request.nextUrl.pathname === route
-    );
+    const isPublicRoute = publicRoutes.some((route) => pathname === route);
 
     if (!user && !isPublicRoute) {
-        // No user and not on a public route, redirect to sign-in
         const url = request.nextUrl.clone();
         url.pathname = "/auth/sign-in";
         return NextResponse.redirect(url);
     }
 
-    // If user is authenticated and on auth pages, redirect to onboarding or dashboard
-    if (user && request.nextUrl.pathname.startsWith("/auth/")) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/onboarding/create-workspace";
-        return NextResponse.redirect(url);
+    // Handle authenticated user routing
+    if (user) {
+        const isAuthPage = pathname.startsWith("/auth/");
+        const isOnboardingPage = pathname === "/onboarding/create-workspace";
+
+        // Check workspaces for auth pages only (allow access to onboarding for multiple workspaces)
+        if (isAuthPage) {
+            const { data: memberships } = await supabase
+                .from("workspace_members")
+                .select("workspace_id")
+                .eq("user_id", user.id)
+                .limit(1);
+
+            // If on auth page, redirect appropriately
+            if (isAuthPage) {
+                const url = request.nextUrl.clone();
+                if (memberships && memberships.length > 0) {
+                    url.pathname = `/w/${memberships[0].workspace_id}/dashboard`;
+                } else {
+                    url.pathname = "/onboarding/create-workspace";
+                }
+                return NextResponse.redirect(url);
+            }
+        }
     }
 
     return supabaseResponse;
 }
+
+
+
+

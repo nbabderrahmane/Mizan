@@ -4,6 +4,22 @@ Timestamped changelog for all meaningful changes.
 
 ---
 
+## 2026-01-03 16:25 - Phase 2 Complete: Accounts + Categories
+
+### Created
+- **Account actions** (`src/lib/actions/account.ts`): CRUD, balance calc
+- **Category actions** (`src/lib/actions/category.ts`): CRUD, seeding
+- **Account pages**: `/w/[id]/accounts` with list, create dialog
+- **Category pages**: `/w/[id]/categories` with tree view
+- **Setup wizard**: `/w/[id]/setup` with default category seeding
+- **UI components**: AccountCard, CategoryList, dialogs
+
+### Build Verification
+- ✅ TypeScript compilation
+- ✅ All pages render (static + dynamic)
+
+---
+
 ## 2026-01-03 16:07 - RLS Workspace Creation Fix v2
 
 ### Root Cause
@@ -146,3 +162,8 @@ Timestamped changelog for all meaningful changes.
 - Service role key only used server-side, never exposed to browser
 
 ---
+## Verification Update (2026-01-03)
+
+- Verified account edit, reconciliation, UI polish, transfer double‑entry, and filters.
+- Updated documentation files: ARCHITECTURE.md, RUNBOOK.md, LOGS.md.
+

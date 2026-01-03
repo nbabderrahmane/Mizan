@@ -13,9 +13,21 @@ import {
     Bell,
     Settings,
     LogOut,
+    User,
+    UserPlus,
+    Lock,
+    Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { WorkspaceSwitcher, WorkspaceItem } from "./workspace-switcher";
 import { signOut } from "@/app/auth/actions";
 
@@ -31,8 +43,7 @@ const navItems = [
     { href: "accounts", label: "Accounts", icon: Wallet },
     { href: "categories", label: "Categories", icon: Tags },
     { href: "transactions", label: "Transactions", icon: Receipt },
-    { href: "provisions", label: "Provisions", icon: PiggyBank },
-    { href: "budgets", label: "Budgets", icon: LineChart },
+    { href: "budgets", label: "Budgets", icon: PiggyBank },
     { href: "members", label: "Members", icon: Users },
 ];
 
@@ -96,13 +107,46 @@ export function AppShell({
                             <Bell className="h-4 w-4" />
                             Notifications
                         </Link>
-                        <Link
-                            href="/settings/profile"
-                            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                            <Settings className="h-4 w-4" />
-                            Settings
-                        </Link>
+
+                        {/* Settings dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                                    <Settings className="h-4 w-4" />
+                                    Settings
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent side="top" align="start" className="w-56">
+                                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/w/${currentWorkspaceId}/settings/profile`}>
+                                        <User className="mr-2 h-4 w-4" />
+                                        Edit Profile
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/w/${currentWorkspaceId}/settings/invite`}>
+                                        <UserPlus className="mr-2 h-4 w-4" />
+                                        Invite Contributor
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/w/${currentWorkspaceId}/settings/password`}>
+                                        <Lock className="mr-2 h-4 w-4" />
+                                        Change Password
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/w/${currentWorkspaceId}/settings/workspace`}>
+                                        <Building className="mr-2 h-4 w-4" />
+                                        Edit Workspace
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         <form action={signOut}>
                             <button
                                 type="submit"
@@ -153,7 +197,7 @@ export function AppShell({
                             <Bell className="h-5 w-5" />
                         </Button>
                     </Link>
-                    <Link href="/settings/profile">
+                    <Link href={`/w/${currentWorkspaceId}/settings/workspace`}>
                         <Button variant="ghost" size="icon">
                             <Settings className="h-5 w-5" />
                         </Button>

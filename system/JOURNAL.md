@@ -1,16 +1,15 @@
-# Mizan - Developer Handoff Journal
+# System Journal - Mizan
 
-A comprehensive guide for developers taking over this project. Updated after each major change.
+## Current Status
+**Phase:** 2 (Completed - Navigation Fixes)
+**Focus:** Multi-workspace Support & Settings Navigation
+**Last Action:** Cleaned up debug logs and finalized navigation structure.
 
----
+## Active Context
+Completed Phase 2 accounts/categories, then addressed user feedback regarding multi-workspace creation flow and settings menu placement.
 
-## Current Status: Phase 0 & 1 Complete ✅
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| Phase 0 | ✅ Complete | Repo + Infra |
-| Phase 1 | ✅ Complete | Auth + Workspace Foundation |
-| Phase 2 | 🔜 Next | Accounts + Categories |
+## Next Steps
+- Begin Phase 3: Transactions & Multi-currency Support. |
 
 ---
 
@@ -209,3 +208,16 @@ Example log output:
 [INFO] signUp action started | cid:e921a597 | action:signUp
 [ERROR] Supabase auth signUp failed | cid:e921a597
 ```
+## Verification Update (2026-01-03)
+
+- Verified account edit (name, opening balance) functionality.
+- Verified account reconciliation (adjustment transaction creation) via `ReconcileAccountDialog`.
+- Verified UI polish: reduced clicks, meaningful empty states pending, confirmation dialogs added where needed.
+- Verified transfer double‑entry polish.
+- Verified transaction filters (month, account, category, member, vendor).
+
+Updated documentation files:
+- ARCHITECTURE.md
+- RUNBOOK.md
+- LOGS.md
+
