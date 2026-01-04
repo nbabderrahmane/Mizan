@@ -48,26 +48,24 @@ export async function updateSession(request: NextRequest) {
     // Handle authenticated user routing
     if (user) {
         const isAuthPage = pathname.startsWith("/auth/");
+        const isLandingPage = pathname === "/";
         const isOnboardingPage = pathname === "/onboarding/create-workspace";
 
-        // Check workspaces for auth pages only (allow access to onboarding for multiple workspaces)
-        if (isAuthPage) {
+        // Redirect authenticated users from auth pages or landing page
+        if (isAuthPage || isLandingPage) {
             const { data: memberships } = await supabase
                 .from("workspace_members")
                 .select("workspace_id")
                 .eq("user_id", user.id)
                 .limit(1);
 
-            // If on auth page, redirect appropriately
-            if (isAuthPage) {
-                const url = request.nextUrl.clone();
-                if (memberships && memberships.length > 0) {
-                    url.pathname = `/w/${memberships[0].workspace_id}/dashboard`;
-                } else {
-                    url.pathname = "/onboarding/create-workspace";
-                }
-                return NextResponse.redirect(url);
+            const url = request.nextUrl.clone();
+            if (memberships && memberships.length > 0) {
+                url.pathname = `/w/${memberships[0].workspace_id}/dashboard`;
+            } else {
+                url.pathname = "/onboarding/create-workspace";
             }
+            return NextResponse.redirect(url);
         }
     }
 

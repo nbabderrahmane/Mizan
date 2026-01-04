@@ -28,7 +28,7 @@ export default function SignUpPage() {
         const result = await signUp(formData);
 
         if (result.success) {
-            router.push("/onboarding/create-workspace");
+            router.push("/");
         } else {
             setError(result.error?.message || "An error occurred");
         }
