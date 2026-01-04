@@ -117,7 +117,7 @@ export async function createBudget(
                         });
 
                         if (fError) {
-                            logger.warn("Auto-fund insert failed", new Error(fError.message));
+                            logger.warn("Auto-fund insert failed", { error: fError.message });
                             // Non-critical (?) - user can manually fund later.
                         } else {
                             logger.info("Auto-fund successful");
