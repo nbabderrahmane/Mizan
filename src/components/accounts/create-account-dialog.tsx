@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { createAccount } from "@/lib/actions/account";
 import { accountTypes, commonCurrencies } from "@/lib/validations/account";
+import { useTranslations } from "next-intl";
 
 interface CreateAccountDialogProps {
     workspaceId: string;
@@ -35,6 +36,8 @@ export function CreateAccountDialog({
     onOpenChange,
     onSuccess,
 }: CreateAccountDialogProps) {
+    const t = useTranslations("Accounts");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +55,7 @@ export function CreateAccountDialog({
             onOpenChange(false);
             onSuccess?.();
         } else {
-            setError(result.error?.message || "Failed to create account");
+            setError(result.error?.message || common("error"));
         }
     }
 
@@ -60,15 +63,15 @@ export function CreateAccountDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Add Account</DialogTitle>
+                    <DialogTitle>{t("addAccount")}</DialogTitle>
                     <DialogDescription>
-                        Add a new financial account to track your money.
+                        {t("addDescription")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Account Name</Label>
+                        <Label htmlFor="name">{t("accountName")}</Label>
                         <Input
                             id="name"
                             name="name"
@@ -78,15 +81,15 @@ export function CreateAccountDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="type">Account Type</Label>
+                        <Label htmlFor="type">{t("type")}</Label>
                         <Select name="type" defaultValue="bank">
                             <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder={t("selectType")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {accountTypes.map((type) => (
                                     <SelectItem key={type} value={type}>
-                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        {t(type as any) || type.charAt(0).toUpperCase() + type.slice(1)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -94,10 +97,10 @@ export function CreateAccountDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="base_currency">Currency</Label>
+                        <Label htmlFor="base_currency">{t("currency")}</Label>
                         <Select name="base_currency" defaultValue="MAD">
                             <SelectTrigger>
-                                <SelectValue placeholder="Select currency" />
+                                <SelectValue placeholder={t("selectCurrency")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {commonCurrencies.map((currency) => (
@@ -110,7 +113,7 @@ export function CreateAccountDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="opening_balance">Opening Balance</Label>
+                        <Label htmlFor="opening_balance">{t("openingBalance")}</Label>
                         <Input
                             id="opening_balance"
                             name="opening_balance"
@@ -131,10 +134,10 @@ export function CreateAccountDialog({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                         >
-                            Cancel
+                            {common("cancel")}
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Creating..." : "Create Account"}
+                            {isLoading ? common("creating") : t("addAccount")}
                         </Button>
                     </DialogFooter>
                 </form>

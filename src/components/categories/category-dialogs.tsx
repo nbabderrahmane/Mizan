@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { createCategory, createSubcategory, updateCategory, updateSubcategory } from "@/lib/actions/category";
 import type { Category } from "@/lib/actions/category";
+import { useTranslations } from "next-intl";
 
 interface CreateCategoryDialogProps {
     workspaceId: string;
@@ -35,6 +36,9 @@ export function CreateCategoryDialog({
     onOpenChange,
     onSuccess,
 }: CreateCategoryDialogProps) {
+    const t = useTranslations("Categories");
+    const tTransactions = useTranslations("Transactions");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -51,8 +55,9 @@ export function CreateCategoryDialog({
         if (result.success) {
             onOpenChange(false);
             onSuccess?.();
+            setError(null);
         } else {
-            setError(result.error?.message || "Failed to create category");
+            setError(result.error?.message || common("error"));
         }
     }
 
@@ -60,15 +65,15 @@ export function CreateCategoryDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
-                    <DialogTitle>Add Category</DialogTitle>
+                    <DialogTitle>{t("addCategory")}</DialogTitle>
                     <DialogDescription>
-                        Create a new budget category.
+                        {t("addCategoryDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Category Name</Label>
+                        <Label htmlFor="name">{t("categoryName")}</Label>
                         <Input
                             id="name"
                             name="name"
@@ -78,18 +83,18 @@ export function CreateCategoryDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="type">Transaction Type</Label>
+                        <Label htmlFor="type">{t("transactionType")}</Label>
                         <Select name="type" required>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder={t("selectType")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="expense">Expense</SelectItem>
-                                <SelectItem value="income">Income</SelectItem>
+                                <SelectItem value="expense">{tTransactions("expense")}</SelectItem>
+                                <SelectItem value="income">{tTransactions("income")}</SelectItem>
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                            Used to filter categories in transaction forms.
+                            {t("typeHint")}
                         </p>
                     </div>
 
@@ -103,10 +108,10 @@ export function CreateCategoryDialog({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                         >
-                            Cancel
+                            {common("cancel")}
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Creating..." : "Create"}
+                            {isLoading ? common("creating") : common("add")}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -132,6 +137,8 @@ export function CreateSubcategoryDialog({
     onOpenChange,
     onSuccess,
 }: CreateSubcategoryDialogProps) {
+    const t = useTranslations("Categories");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -148,8 +155,9 @@ export function CreateSubcategoryDialog({
         if (result.success) {
             onOpenChange(false);
             onSuccess?.();
+            setError(null);
         } else {
-            setError(result.error?.message || "Failed to create subcategory");
+            setError(result.error?.message || common("error"));
         }
     }
 
@@ -157,15 +165,15 @@ export function CreateSubcategoryDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
-                    <DialogTitle>Add Subcategory</DialogTitle>
+                    <DialogTitle>{t("addSubcategory")}</DialogTitle>
                     <DialogDescription>
-                        Create a new subcategory for budgeting.
+                        {t("addSubcategoryDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Subcategory Name</Label>
+                        <Label htmlFor="name">{t("subcategoryName")}</Label>
                         <Input
                             id="name"
                             name="name"
@@ -174,13 +182,11 @@ export function CreateSubcategoryDialog({
                         />
                     </div>
 
-                    <input type="hidden" name="category_id" value={categoryId} />
-
                     <div className="space-y-2">
-                        <Label htmlFor="category">Category</Label>
+                        <Label htmlFor="category">{t("parentCategory")}</Label>
                         <Select name="category_id" defaultValue={categoryId}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select category" />
+                                <SelectValue placeholder={t("selectCategory")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {categories.map((cat) => (
@@ -202,10 +208,10 @@ export function CreateSubcategoryDialog({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                         >
-                            Cancel
+                            {common("cancel")}
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Creating..." : "Create"}
+                            {isLoading ? common("creating") : common("add")}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -229,6 +235,9 @@ export function EditCategoryDialog({
     onOpenChange,
     onSuccess,
 }: EditCategoryDialogProps) {
+    const t = useTranslations("Categories");
+    const tTransactions = useTranslations("Transactions");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -245,8 +254,9 @@ export function EditCategoryDialog({
         if (result.success) {
             onOpenChange(false);
             onSuccess?.();
+            setError(null);
         } else {
-            setError(result.error?.message || "Failed to update category");
+            setError(result.error?.message || common("error"));
         }
     }
 
@@ -254,15 +264,15 @@ export function EditCategoryDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Category</DialogTitle>
+                    <DialogTitle>{t("editCategory")}</DialogTitle>
                     <DialogDescription>
-                        Update category details.
+                        {t("editCategoryDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="edit-name">Category Name</Label>
+                        <Label htmlFor="edit-name">{t("categoryName")}</Label>
                         <Input
                             id="edit-name"
                             name="name"
@@ -272,14 +282,14 @@ export function EditCategoryDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="edit-type">Transaction Type</Label>
+                        <Label htmlFor="edit-type">{t("transactionType")}</Label>
                         <Select name="type" defaultValue={category.type || undefined}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder={t("selectType")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="expense">Expense</SelectItem>
-                                <SelectItem value="income">Income</SelectItem>
+                                <SelectItem value="expense">{tTransactions("expense")}</SelectItem>
+                                <SelectItem value="income">{tTransactions("income")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -294,10 +304,10 @@ export function EditCategoryDialog({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                         >
-                            Cancel
+                            {common("cancel")}
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Saving..." : "Save Changes"}
+                            {isLoading ? common("saving") : common("save")}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -321,6 +331,8 @@ export function EditSubcategoryDialog({
     onOpenChange,
     onSuccess,
 }: EditSubcategoryDialogProps) {
+    const t = useTranslations("Categories");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -337,8 +349,9 @@ export function EditSubcategoryDialog({
         if (result.success) {
             onOpenChange(false);
             onSuccess?.();
+            setError(null);
         } else {
-            setError(result.error?.message || "Failed to update subcategory");
+            setError(result.error?.message || common("error"));
         }
     }
 
@@ -346,12 +359,12 @@ export function EditSubcategoryDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Subcategory</DialogTitle>
+                    <DialogTitle>{t("editSubcategory")}</DialogTitle>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="edit-sub-name">Subcategory Name</Label>
+                        <Label htmlFor="edit-sub-name">{t("subcategoryName")}</Label>
                         <Input
                             id="edit-sub-name"
                             name="name"
@@ -370,10 +383,10 @@ export function EditSubcategoryDialog({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                         >
-                            Cancel
+                            {common("cancel")}
                         </Button>
                         <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Saving..." : "Save Changes"}
+                            {isLoading ? common("saving") : common("save")}
                         </Button>
                     </DialogFooter>
                 </form>

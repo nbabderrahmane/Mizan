@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function updateSession(request: NextRequest) {
-    let supabaseResponse = NextResponse.next({
+export async function updateSession(request: NextRequest, response?: NextResponse) {
+    let supabaseResponse = response || NextResponse.next({
         request,
     });
 
@@ -35,21 +35,36 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Define public routes that don't require authentication
-    const publicRoutes = ["/", "/auth/sign-in", "/auth/sign-up", "/auth/callback"];
-    const isPublicRoute = publicRoutes.some((route) => pathname === route);
+    // Helper to check if a path corresponds to a public route, ignoring locale prefix
+    const isPublicRoute = (path: string) => {
+        const publicRoutes = ["/", "/auth/sign-in", "/auth/sign-up", "/auth/callback"];
+        // Strip the locale prefix if it exists (e.g., /en/auth/sign-in -> /auth/sign-in)
+        const pathWithoutLocale = path.replace(/^\/(en|fr)(\/|$)/, "/");
+        // Ensure pathWithoutLocale is never empty string for root matching
+        const normalizedPath = pathWithoutLocale === "" ? "/" : pathWithoutLocale;
+        return publicRoutes.includes(normalizedPath);
+    };
 
-    if (!user && !isPublicRoute) {
+    if (!user && !isPublicRoute(pathname)) {
         const url = request.nextUrl.clone();
-        url.pathname = "/auth/sign-in";
+        // Redirect to sign-in, maintaining locale if present
+        const localeMatch = pathname.match(/^\/(en|fr)/);
+        const locale = localeMatch ? localeMatch[0] : "";
+        url.pathname = `${locale}/auth/sign-in`;
         return NextResponse.redirect(url);
     }
 
     // Handle authenticated user routing
     if (user) {
-        const isAuthPage = pathname.startsWith("/auth/");
-        const isLandingPage = pathname === "/";
-        const isOnboardingPage = pathname === "/onboarding/create-workspace";
+        // Strip locale for logic checks
+        const pathWithoutLocale = pathname.replace(/^\/(en|fr)(\/|$)/, "/");
+        const normalizedPath = pathWithoutLocale === "" ? "/" : pathWithoutLocale;
+        const localeMatch = pathname.match(/^\/(en|fr)/);
+        const locale = localeMatch ? localeMatch[0] : "";
+
+        const isAuthPage = normalizedPath.startsWith("/auth/");
+        const isLandingPage = normalizedPath === "/";
+        const isOnboardingPage = normalizedPath === "/onboarding/create-workspace";
 
         // Redirect authenticated users from auth pages or landing page
         if (isAuthPage || isLandingPage) {
@@ -73,16 +88,16 @@ export async function updateSession(request: NextRequest) {
 
             if (isSupportAdmin && hasWorkspaces) {
                 // If both, let them choose
-                url.pathname = "/role-selection";
+                url.pathname = `${locale}/role-selection`;
             } else if (isSupportAdmin) {
                 // Admin only -> Admin Dashboard
-                url.pathname = "/admin";
+                url.pathname = `${locale}/admin`;
             } else if (hasWorkspaces) {
                 // Member only -> Workspace Dashboard
-                url.pathname = `/w/${memberships[0].workspace_id}/dashboard`;
+                url.pathname = `${locale}/w/${memberships[0].workspace_id}/dashboard`;
             } else {
                 // Neither -> Onboarding
-                url.pathname = "/onboarding";
+                url.pathname = `${locale}/onboarding`;
             }
             return NextResponse.redirect(url);
         }

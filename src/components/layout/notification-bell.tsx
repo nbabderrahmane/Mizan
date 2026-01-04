@@ -29,7 +29,10 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { useTranslations } from "next-intl";
+
 export function NotificationBell() {
+    const t = useTranslations("Navigation");
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,12 +88,12 @@ export function NotificationBell() {
                             </span>
                         )}
                     </div>
-                    <span>Notifications</span>
+                    <span>{t("notifications")}</span>
                 </button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0" align="start" side="right" sideOffset={10}>
                 <div className="flex items-center justify-between p-4 border-b">
-                    <h4 className="font-semibold text-sm">Notifications</h4>
+                    <h4 className="font-semibold text-sm">{t("notifications")}</h4>
                     {unreadCount > 0 && (
                         <Button
                             variant="ghost"
@@ -99,7 +102,7 @@ export function NotificationBell() {
                             onClick={handleMarkAllRead}
                         >
                             <CheckCheck className="h-3 w-3 mr-1" />
-                            Mark all as read
+                            {t("markAllRead")}
                         </Button>
                     )}
                 </div>
@@ -111,7 +114,7 @@ export function NotificationBell() {
                     ) : notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-2">
                             <InboxIcon className="h-10 w-10 text-muted-foreground/30" />
-                            <p className="text-sm text-muted-foreground">All caught up!</p>
+                            <p className="text-sm text-muted-foreground">{t("allCaughtUp")}</p>
                         </div>
                     ) : (
                         <div className="flex flex-col">
@@ -173,7 +176,7 @@ export function NotificationBell() {
                         className="text-[11px] text-muted-foreground hover:text-primary transition-colors"
                         onClick={() => setOpen(false)}
                     >
-                        View all notifications
+                        {t("viewAllNotifications")}
                     </Link>
                 </div>
             </PopoverContent>

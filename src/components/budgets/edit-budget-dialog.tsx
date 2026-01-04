@@ -1,151 +1,132 @@
 "use client";
 
 import { useState } from "react";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2 } from "lucide-react";
 import { updateBudget } from "@/lib/actions/budget";
-import { BudgetWithConfigs } from "@/lib/validations/budget";
-import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface EditBudgetDialogProps {
-    budget: BudgetWithConfigs;
-    workspaceId: string;
     open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: (updatedBudget: BudgetWithConfigs) => void;
+    setOpen: (open: boolean) => void;
+    workspaceId: string;
+    budget: any;
+    onSuccess: (updatedBudget: any) => void;
 }
 
-export function EditBudgetDialog({
-    budget,
-    workspaceId,
-    open,
-    onOpenChange,
-    onSuccess,
-}: EditBudgetDialogProps) {
-    const { toast } = useToast();
+const CURRENCIES = ["USD", "EUR", "GBP", "MAD", "AED"];
+
+export function EditBudgetDialog({ open, setOpen, workspaceId, budget, onSuccess }: EditBudgetDialogProps) {
+    const t = useTranslations("Budgets");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const isPAYG = budget.type === "PAYG";
-    const paygConfig = Array.isArray(budget.payg_config) ? budget.payg_config[0] : budget.payg_config;
-    const planConfig = Array.isArray(budget.plan_config) ? budget.plan_config[0] : budget.plan_config;
+    // Form Data
+    const [name, setName] = useState(budget?.name || "");
+    const [amount, setAmount] = useState(budget?.monthly_cap?.toString() || "");
+    const [currency, setCurrency] = useState(budget?.currency || "USD");
+    const [isRecurring, setIsRecurring] = useState(budget?.is_recurring || false);
 
-    const [name, setName] = useState(budget.name || "");
-    const [amount, setAmount] = useState(
-        isPAYG
-            ? String(paygConfig?.monthly_cap || "")
-            : String(planConfig?.target_amount || "")
-    );
-    const [isRecurring, setIsRecurring] = useState(
-        (paygConfig as any)?.is_recurring ?? false
-    );
-
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setIsLoading(true);
+        setError(null);
 
-        const result = await updateBudget(workspaceId, budget.id, {
-            name: name || undefined,
-            monthlyCap: isPAYG ? parseFloat(amount) : undefined,
-            targetAmount: !isPAYG ? parseFloat(amount) : undefined,
-            isRecurring: isPAYG ? isRecurring : undefined,
+        const res = await updateBudget(workspaceId, budget.id, {
+            name,
+            monthlyCap: parseFloat(amount),
+            isRecurring
         });
 
         setIsLoading(false);
 
-        if (result.success) {
-            toast({ title: "Budget updated", description: "Your changes have been saved." });
-            // Update local state with new values
-            const updatedBudget = {
-                ...budget,
-                name: name || budget.name,
-                payg_config: isPAYG
-                    ? { ...paygConfig, monthly_cap: parseFloat(amount), is_recurring: isRecurring }
-                    : budget.payg_config,
-                plan_config: !isPAYG
-                    ? { ...planConfig, target_amount: parseFloat(amount) }
-                    : budget.plan_config,
-            };
-            onSuccess(updatedBudget as BudgetWithConfigs);
-            onOpenChange(false);
+        if (res.success) {
+            onSuccess(res.data);
+            setOpen(false);
         } else {
-            toast({
-                title: "Error",
-                description: result.error?.message || "Failed to update budget",
-                variant: "destructive",
-            });
+            setError(res.error?.message || common("error"));
         }
-    }
+    };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Budget</DialogTitle>
+                    <DialogTitle>{t("editBudget")}</DialogTitle>
                     <DialogDescription>
-                        Update the settings for "{budget.subcategory?.name}" budget.
+                        {t("editBudgetDesc", { name: budget?.name })}
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                <div className="grid gap-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Budget Name</Label>
+                        <Label htmlFor="edit-name">{t("budgetName")}</Label>
                         <Input
-                            id="name"
+                            id="edit-name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder={budget.subcategory?.name || "Budget name"}
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="amount">
-                            {isPAYG ? "Monthly Cap" : "Target Amount"} ({budget.currency})
-                        </Label>
-                        <Input
-                            id="amount"
-                            type="number"
-                            step="0.01"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            placeholder="0.00"
-                            required
-                        />
-                    </div>
-
-                    {isPAYG && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox
-                                id="recurring"
-                                checked={isRecurring}
-                                onCheckedChange={(checked) => setIsRecurring(checked === true)}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2 space-y-2">
+                            <Label>{t("amount")}</Label>
+                            <Input
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
                             />
-                            <Label htmlFor="recurring" className="text-sm cursor-pointer">
-                                Recurring Monthly
-                            </Label>
                         </div>
-                    )}
+                        <div className="space-y-2">
+                            <Label>{common("currency")}</Label>
+                            <Select value={currency} onValueChange={setCurrency}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {CURRENCIES.map((c) => (
+                                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Save Changes
-                        </Button>
-                    </DialogFooter>
-                </form>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="edit-recurring"
+                            checked={isRecurring}
+                            onCheckedChange={(val: any) => setIsRecurring(val)}
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                            <label
+                                htmlFor="edit-recurring"
+                                className="text-sm font-medium"
+                            >
+                                {t("recurringPAYG")}
+                            </label>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <p className="text-sm text-destructive">{error}</p>
+                    )}
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setOpen(false)}>
+                        {common("cancel")}
+                    </Button>
+                    <Button onClick={handleSubmit} disabled={isLoading || !name || !amount}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {common("save")}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

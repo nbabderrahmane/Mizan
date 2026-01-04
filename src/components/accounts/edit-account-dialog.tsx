@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { updateAccount } from "@/lib/actions/account";
 import { Loader2 } from "lucide-react";
 import { Account } from "@/lib/actions/account";
+import { useTranslations } from "next-intl";
 
 interface EditAccountDialogProps {
     workspaceId: string;
@@ -22,6 +23,8 @@ export function EditAccountDialog({
     open,
     onOpenChange,
 }: EditAccountDialogProps) {
+    const t = useTranslations("Accounts");
+    const common = useTranslations("Common");
     const [name, setName] = useState(account.name);
     const [openingBalance, setOpeningBalance] = useState(account.opening_balance.toString());
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,12 +50,12 @@ export function EditAccountDialog({
         try {
             const result = await updateAccount(account.id, formData, workspaceId);
             if (!result.success) {
-                setError(result.error?.message || "Failed to update account");
+                setError(result.error?.message || common("error"));
             } else {
                 onOpenChange(false);
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError(common("error"));
         } finally {
             setIsSubmitting(false);
         }
@@ -62,15 +65,15 @@ export function EditAccountDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Account</DialogTitle>
+                    <DialogTitle>{t("editAccount")}</DialogTitle>
                     <DialogDescription>
-                        Update account details. Changing the opening balance will affect the entire history.
+                        {t("editDescription")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Account Name</Label>
+                        <Label htmlFor="name">{t("accountName")}</Label>
                         <Input
                             id="name"
                             value={name}
@@ -79,7 +82,7 @@ export function EditAccountDialog({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="opening-balance">Opening Balance</Label>
+                        <Label htmlFor="opening-balance">{t("openingBalance")}</Label>
                         <Input
                             id="opening-balance"
                             type="number"
@@ -87,9 +90,6 @@ export function EditAccountDialog({
                             value={openingBalance}
                             onChange={(e) => setOpeningBalance(e.target.value)}
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Use this only if the initial setup was incorrect. For periodic checks, use "Reconcile" instead.
-                        </p>
                     </div>
 
                     {error && (
@@ -101,16 +101,16 @@ export function EditAccountDialog({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-                        Cancel
+                        {common("cancel")}
                     </Button>
                     <Button onClick={handleUpdate} disabled={isSubmitting}>
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Saving...
+                                {common("saving")}
                             </>
                         ) : (
-                            "Save Changes"
+                            common("save")
                         )}
                     </Button>
                 </DialogFooter>

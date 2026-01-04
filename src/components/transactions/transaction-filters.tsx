@@ -33,6 +33,7 @@ import {
     CommandList,
 } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 interface Account {
     id: string;
@@ -50,6 +51,9 @@ export function TransactionFilters({
     vendors = [],
     members = []
 }: TransactionFiltersProps) {
+    const t = useTranslations("Transactions");
+    const common = useTranslations("Common");
+    const locale = useLocale();
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -105,140 +109,106 @@ export function TransactionFilters({
         [searchParams]
     );
 
-    const applyFilters = (updates: Record<string, string | null>) => {
-        const query = createQueryString(updates);
-        router.push(pathname + "?" + query);
-    };
-
-    // Handlers
     const handleAccountChange = (val: string) => {
-        applyFilters({ accountId: val === "all" ? null : val });
+        router.push(`${pathname}?${createQueryString({ accountId: val === "all" ? null : val })}`);
     };
 
-    const handleVendorSelect = (val: string) => {
-        applyFilters({ vendor: val === "all" ? null : val });
+    const handleVendorChange = (val: string) => {
+        router.push(`${pathname}?${createQueryString({ vendor: val === "all" ? null : val })}`);
         setOpenVendor(false);
     };
 
     const handleCreatedByChange = (val: string) => {
-        applyFilters({ createdBy: val === "all" ? null : val });
+        router.push(`${pathname}?${createQueryString({ createdBy: val === "all" ? null : val })}`);
     };
 
-    const handleDateSelect = (range: DateRange | undefined) => {
+    const handleDateChange = (range: DateRange | undefined) => {
         setDate(range);
         if (range?.from && range?.to) {
-            applyFilters({
-                startDate: format(range.from, "yyyy-MM-dd"),
-                endDate: format(range.to, "yyyy-MM-dd"),
-                month: null, // Clear month if specific range is set
-            });
+            router.push(
+                `${pathname}?${createQueryString({
+                    startDate: format(range.from, "yyyy-MM-dd"),
+                    endDate: format(range.to, "yyyy-MM-dd"),
+                    month: null,
+                })}`
+            );
         } else if (!range) {
-            // If cleared, maybe reset to default? or just clear params
-            applyFilters({ startDate: null, endDate: null, month: null });
+            router.push(
+                `${pathname}?${createQueryString({
+                    startDate: null,
+                    endDate: null,
+                })}`
+            );
         }
     };
 
-    return (
-        <div className="flex flex-wrap gap-x-6 gap-y-4 items-end">
-            {/* Date Range Picker */}
-            <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">Date Range</Label>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            id="date"
-                            variant={"outline"}
-                            className={cn(
-                                "w-[240px] justify-start text-left font-normal",
-                                !date && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date?.from ? (
-                                date.to ? (
-                                    <>
-                                        {format(date.from, "LLL dd, y")} -{" "}
-                                        {format(date.to, "LLL dd, y")}
-                                    </>
-                                ) : (
-                                    format(date.from, "LLL dd, y")
-                                )
-                            ) : (
-                                <span>Pick a date</span>
-                            )}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            initialFocus
-                            mode="range"
-                            defaultMonth={date?.from}
-                            selected={date}
-                            onSelect={handleDateSelect}
-                            numberOfMonths={2}
-                        />
-                    </PopoverContent>
-                </Popover>
-            </div>
+    const clearFilters = () => {
+        setDate(undefined);
+        router.push(pathname);
+    };
 
-            {/* Account Filter */}
-            <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">Account</Label>
+    return (
+        <div className="flex flex-wrap items-end gap-3 p-4 bg-muted/20 border rounded-lg">
+            <div className="space-y-1.5 min-w-[140px]">
+                <Label className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">{t("account")}</Label>
                 <Select value={accountId} onValueChange={handleAccountChange}>
-                    <SelectTrigger className="w-[150px] h-9">
-                        <SelectValue placeholder="All Accounts" />
+                    <SelectTrigger className="h-8 text-xs font-medium bg-background">
+                        <SelectValue placeholder={t("allAccounts")} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Accounts</SelectItem>
-                        {accounts.map(acc => (
-                            <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                        <SelectItem value="all">{t("allAccounts")}</SelectItem>
+                        {accounts.map((acc) => (
+                            <SelectItem key={acc.id} value={acc.id}>
+                                {acc.name}
+                            </SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
             </div>
 
-            {/* Vendor Filter */}
-            <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">Vendor</Label>
+            <div className="space-y-1.5 min-w-[160px]">
+                <Label className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">{t("vendor")}</Label>
                 <Popover open={openVendor} onOpenChange={setOpenVendor}>
                     <PopoverTrigger asChild>
                         <Button
                             variant="outline"
                             role="combobox"
                             aria-expanded={openVendor}
-                            className="w-[150px] h-9 justify-between font-normal"
+                            className="h-8 w-full justify-between text-xs font-medium bg-background px-3"
                         >
-                            <span className="truncate">{vendorParam || "All Vendors"}</span>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            {vendorParam || t("allVendors")}
+                            <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[200px] p-0">
                         <Command>
-                            <CommandInput placeholder="Search vendor..." />
+                            <CommandInput placeholder={t("searchVendors")} className="h-8 text-xs" />
                             <CommandList>
-                                <CommandEmpty>No vendor found.</CommandEmpty>
+                                <CommandEmpty className="text-xs p-2">{common("notFound")}</CommandEmpty>
                                 <CommandGroup>
                                     <CommandItem
                                         value="all"
-                                        onSelect={() => handleVendorSelect("all")}
+                                        onSelect={() => handleVendorChange("all")}
+                                        className="text-xs"
                                     >
                                         <Check
                                             className={cn(
-                                                "mr-2 h-4 w-4",
+                                                "mr-2 h-3 w-3",
                                                 !vendorParam ? "opacity-100" : "opacity-0"
                                             )}
                                         />
-                                        All Vendors
+                                        {t("allVendors")}
                                     </CommandItem>
                                     {vendors.map((v) => (
                                         <CommandItem
                                             key={v}
                                             value={v}
-                                            onSelect={() => handleVendorSelect(v)}
+                                            onSelect={() => handleVendorChange(v)}
+                                            className="text-xs"
                                         >
                                             <Check
                                                 className={cn(
-                                                    "mr-2 h-4 w-4",
+                                                    "mr-2 h-3 w-3",
                                                     vendorParam === v ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
@@ -252,16 +222,15 @@ export function TransactionFilters({
                 </Popover>
             </div>
 
-            {/* Created By Filter */}
-            <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-muted-foreground">Created By</Label>
+            <div className="space-y-1.5 min-w-[140px]">
+                <Label className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">{t("createdBy")}</Label>
                 <Select value={createdByParam || "all"} onValueChange={handleCreatedByChange}>
-                    <SelectTrigger className="w-[150px] h-9">
-                        <SelectValue placeholder="All Users" />
+                    <SelectTrigger className="h-8 text-xs font-medium bg-background">
+                        <SelectValue placeholder={t("allMembers")} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Users</SelectItem>
-                        {members.map(m => (
+                        <SelectItem value="all">{t("allMembers")}</SelectItem>
+                        {members.map((m) => (
                             <SelectItem key={m.user_id} value={m.user_id}>
                                 {m.first_name} {m.last_name}
                             </SelectItem>
@@ -270,17 +239,51 @@ export function TransactionFilters({
                 </Select>
             </div>
 
-            {/* Clear Filters Button (if any filter is active) */}
-            {(accountId !== "all" || vendorParam || createdByParam || startDateParam || endDateParam) && (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push(pathname)}
-                >
-                    <X className="mr-2 h-4 w-4" />
-                    Clear
+            <div className="space-y-1.5 min-w-[220px]">
+                <Label className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider">{t("dateRange")}</Label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                                "h-8 justify-start text-left font-medium text-xs bg-background w-full",
+                                !date && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-3 w-3" />
+                            {date?.from ? (
+                                date.to ? (
+                                    <>
+                                        {format(date.from, "LLL dd", { locale: undefined })} -{" "}
+                                        {format(date.to, "LLL dd", { locale: undefined })}
+                                    </>
+                                ) : (
+                                    format(date.from, "LLL dd")
+                                )
+                            ) : (
+                                <span>{t("pickDate")}</span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={handleDateChange}
+                            numberOfMonths={2}
+                        />
+                    </PopoverContent>
+                </Popover>
+            </div>
+
+            <div className="pb-0.5">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={clearFilters}>
+                    <X className="h-4 w-4" />
                 </Button>
-            )}
+            </div>
         </div>
     );
 }

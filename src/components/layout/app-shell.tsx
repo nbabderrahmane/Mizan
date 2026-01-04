@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
@@ -29,8 +29,10 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { WorkspaceSwitcher, WorkspaceItem } from "./workspace-switcher";
-import { signOut } from "@/app/auth/actions";
+import { signOut } from "@/lib/actions/auth";
 import { NotificationBell } from "./notification-bell";
+
+import { useTranslations } from "next-intl";
 
 interface AppShellProps {
     children: React.ReactNode;
@@ -40,16 +42,6 @@ interface AppShellProps {
     isSupportAdmin?: boolean;
 }
 
-const navItems = [
-    { href: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "accounts", label: "Accounts", icon: Wallet },
-    { href: "categories", label: "Categories", icon: Tags },
-    { href: "transactions", label: "Transactions", icon: Receipt },
-    { href: "budgets", label: "Budgets", icon: PiggyBank },
-    { href: "reports", label: "Reports", icon: LineChart },
-    { href: "members", label: "Members", icon: Users },
-];
-
 export function AppShell({
     children,
     workspaces,
@@ -58,6 +50,17 @@ export function AppShell({
     isSupportAdmin,
 }: AppShellProps) {
     const pathname = usePathname();
+    const t = useTranslations("Navigation");
+
+    const navItems = [
+        { href: "dashboard", label: t("dashboard"), icon: LayoutDashboard },
+        { href: "accounts", label: t("accounts"), icon: Wallet },
+        { href: "categories", label: t("categories"), icon: Tags },
+        { href: "transactions", label: t("transactions"), icon: Receipt },
+        { href: "budgets", label: t("budgets"), icon: PiggyBank },
+        { href: "reports", label: t("reports"), icon: LineChart },
+        { href: "members", label: t("members"), icon: Users },
+    ];
 
     const isActive = (href: string) => {
         return pathname.includes(`/w/${currentWorkspaceId}/${href}`);
@@ -111,35 +114,35 @@ export function AppShell({
                             <DropdownMenuTrigger asChild>
                                 <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                                     <Settings className="h-4 w-4" />
-                                    Settings
+                                    {t("settings")}
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent side="top" align="start" className="w-56">
-                                <DropdownMenuLabel>Settings</DropdownMenuLabel>
+                                <DropdownMenuLabel>{t("settings")}</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/settings/profile`}>
                                         <User className="mr-2 h-4 w-4" />
-                                        Edit Profile
+                                        {t("editProfile")}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/members`}>
                                         <UserPlus className="mr-2 h-4 w-4" />
-                                        Invite Contributor
+                                        {t("inviteContributor")}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/settings/password`}>
                                         <Lock className="mr-2 h-4 w-4" />
-                                        Change Password
+                                        {t("changePassword")}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/settings/workspace`}>
                                         <Building className="mr-2 h-4 w-4" />
-                                        Edit Workspace
+                                        {t("editWorkspace")}
                                     </Link>
                                 </DropdownMenuItem>
                                 {isSupportAdmin && (
@@ -148,7 +151,7 @@ export function AppShell({
                                         <DropdownMenuItem asChild className="text-primary hover:text-primary focus:text-primary">
                                             <Link href="/admin">
                                                 <Lock className="mr-2 h-4 w-4" />
-                                                Support Admin
+                                                {t("supportAdmin")}
                                             </Link>
                                         </DropdownMenuItem>
                                     </>
@@ -162,7 +165,7 @@ export function AppShell({
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                             >
                                 <LogOut className="h-4 w-4" />
-                                Sign out
+                                {t("signout")}
                             </button>
                         </form>
                         {userEmail && (

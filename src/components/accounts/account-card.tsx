@@ -18,6 +18,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Account, AccountWithBalance } from "@/lib/actions/account";
+import { useLocale, useTranslations } from "next-intl";
 
 const accountTypeConfig = {
     bank: {
@@ -42,14 +43,6 @@ const accountTypeConfig = {
     },
 };
 
-function formatCurrency(amount: number, currency: string): string {
-    return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency,
-        minimumFractionDigits: 2,
-    }).format(amount);
-}
-
 interface AccountCardProps {
     account: AccountWithBalance;
     onEdit?: (account: Account) => void;
@@ -58,10 +51,21 @@ interface AccountCardProps {
 }
 
 export function AccountCard({ account, onEdit, onReconcile, onArchive }: AccountCardProps) {
-    const config = accountTypeConfig[account.type];
+    const t = useTranslations("Accounts");
+    const common = useTranslations("Common");
+    const locale = useLocale();
+    const config = (accountTypeConfig as any)[account.type] || accountTypeConfig.bank;
     const Icon = config.icon;
     const pathname = usePathname();
     const workspaceId = pathname.split('/')[2];
+
+    const formatCurrency = (amount: number, currency: string) => {
+        return new Intl.NumberFormat(locale, {
+            style: "currency",
+            currency: currency,
+            minimumFractionDigits: 2,
+        }).format(amount);
+    };
 
     return (
         <Link href={`/w/${workspaceId}/accounts/${account.id}`} className="block">
@@ -74,7 +78,7 @@ export function AccountCard({ account, onEdit, onReconcile, onArchive }: Account
                         <div>
                             <h3 className="font-medium">{account.name}</h3>
                             <p className="text-xs text-muted-foreground capitalize">
-                                {account.type} • {account.base_currency}
+                                {t(account.type as any) || account.type} • {account.base_currency}
                             </p>
                         </div>
                     </div>
@@ -88,16 +92,16 @@ export function AccountCard({ account, onEdit, onReconcile, onArchive }: Account
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => onEdit?.(account)}>
-                                    Edit Details
+                                    {common("edit")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => onReconcile?.(account)}>
-                                    Reconcile Balance
+                                    {t("reconcile")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onClick={() => onArchive?.(account.id)}
                                     className="text-destructive"
                                 >
-                                    Archive
+                                    {common("archive")}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -106,7 +110,7 @@ export function AccountCard({ account, onEdit, onReconcile, onArchive }: Account
 
                 <div className="mt-4 space-y-2">
                     <div className="flex items-baseline justify-between">
-                        <span className="text-sm text-muted-foreground">Available Balance</span>
+                        <span className="text-sm text-muted-foreground">{t("balance")}</span>
                         <span className="text-lg font-semibold">
                             {formatCurrency(
                                 account.available ?? account.opening_balance ?? 0,
@@ -128,10 +132,12 @@ interface AccountListProps {
 }
 
 export function AccountList({ accounts, onEdit, onReconcile, onArchive }: AccountListProps) {
+    const t = useTranslations("Accounts");
+
     if (!accounts.length) {
         return (
             <div className="text-center py-10 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
-                <p>No accounts yet. Create your first account to start tracking.</p>
+                <p>{t("noAccounts")}</p>
             </div>
         );
     }

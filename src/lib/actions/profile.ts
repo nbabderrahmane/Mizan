@@ -25,6 +25,7 @@ export async function updateProfile(formData: FormData): Promise<ProfileResult> 
         const rawData = {
             first_name: formData.get("first_name"),
             last_name: formData.get("last_name"),
+            locale: formData.get("locale"),
         };
 
         const validated = updateProfileSchema.parse(rawData);
@@ -35,6 +36,7 @@ export async function updateProfile(formData: FormData): Promise<ProfileResult> 
             .update({
                 first_name: validated.first_name,
                 last_name: validated.last_name,
+                locale: validated.locale,
                 updated_at: new Date().toISOString(),
             })
             .eq("id", user.id);
@@ -50,6 +52,40 @@ export async function updateProfile(formData: FormData): Promise<ProfileResult> 
         return {
             success: false,
             error: createSafeError("Failed to update profile", logger.correlationId),
+        };
+    }
+}
+
+export async function updateUserLocale(locale: string): Promise<ProfileResult> {
+    const logger = createLogger();
+
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return { success: false, error: createSafeError("Not authenticated", logger.correlationId) };
+        }
+
+        const { error } = await supabase
+            .from("profiles")
+            .update({
+                locale,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", user.id);
+
+        if (error) throw error;
+
+        revalidatePath("/", "layout");
+
+        return { success: true };
+
+    } catch (error) {
+        logger.error("Error updating locale", error as Error, { action: "updateUserLocale", locale });
+        return {
+            success: false,
+            error: createSafeError("Failed to update language preference", logger.correlationId),
         };
     }
 }

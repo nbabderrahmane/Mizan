@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 export type WorkspaceItem = {
     id: string;
@@ -26,6 +27,7 @@ export function WorkspaceSwitcher({
     workspaces,
     currentWorkspaceId,
 }: WorkspaceSwitcherProps) {
+    const t = useTranslations("Navigation");
     const router = useRouter();
     const pathname = usePathname();
 
@@ -53,13 +55,13 @@ export function WorkspaceSwitcher({
                     className="w-full justify-between"
                 >
                     <span className="truncate">
-                        {currentWorkspace?.name || "Select workspace"}
+                        {currentWorkspace?.name || t("selectWorkspace")}
                     </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("workspaces")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {workspaces.map((workspace) => (
                     <DropdownMenuItem
@@ -79,7 +81,7 @@ export function WorkspaceSwitcher({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleCreateNew} className="cursor-pointer">
                     <Plus className="mr-2 h-4 w-4" />
-                    Create new workspace
+                    {t("createNewWorkspace")}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

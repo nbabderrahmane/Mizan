@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, ArrowRight, Wallet, TrendingUp, TrendingDown, Check, ChevronsUpDown } from "lucide-react";
+import { Loader2, Plus, ArrowRight, Wallet, TrendingUp, TrendingDown, Check, ChevronsUpDown, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ import {
 import { createTransaction, getUniqueVendors } from "@/lib/actions/transaction";
 import { fetchFxRateAction } from "@/lib/services/fx";
 import { BudgetWithConfigs } from "@/lib/validations/budget";
+import { useLocale, useTranslations } from "next-intl";
 
 interface Account {
     id: string;
@@ -83,6 +84,9 @@ export function CreateTransactionDialog({
     prefilled,
     onClose,
 }: CreateTransactionDialogProps) {
+    const t = useTranslations("Transactions");
+    const common = useTranslations("Common");
+    const locale = useLocale();
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -107,29 +111,13 @@ export function CreateTransactionDialog({
     const [vendors, setVendors] = useState<string[]>([]);
     const [openVendor, setOpenVendor] = useState(false);
 
-    // Filtered Categories
+    // Filtered Categories based on transaction type
     const filteredCategories = categories.filter(c => !c.type || c.type === type);
 
-    // Derived State
-    const selectedAccount = accounts.find((a) => a.id === accountId);
+    const selectedAccount = accounts.find(a => a.id === accountId);
     const isForeign = selectedAccount && currency !== selectedAccount.base_currency;
-    const selectedCategory = categories.find((c) => c.id === categoryId);
 
-    // Reset some fields when Type changes
-    useEffect(() => {
-        setCategoryId("");
-        setSubcategoryId("");
-        setTransferAccountId("");
-    }, [type]);
-
-    // Update currency defaults when Account changes
-    useEffect(() => {
-        if (selectedAccount) {
-            setCurrency(selectedAccount.base_currency);
-        }
-    }, [accountId, accounts]);
-
-    // Handle prefilled data from pending payments
+    // Prefill logic
     useEffect(() => {
         if (prefilled) {
             setOpen(true);
@@ -137,6 +125,8 @@ export function CreateTransactionDialog({
             setAmount(prefilled.amount.toString());
             setCurrency(prefilled.currency);
             setTitle(prefilled.name);
+            setVendor(prefilled.name);
+            setDate(prefilled.due_date);
 
             // Find category from subcategory
             for (const cat of categories) {
@@ -182,7 +172,7 @@ export function CreateTransactionDialog({
                 setFxRate(result.rate.toString());
             }
         } catch (err) {
-            console.error("Failed to fetch rate:", err);
+            console.error("FX fetch failed", err);
         } finally {
             setIsFetchingRate(false);
         }
@@ -190,11 +180,11 @@ export function CreateTransactionDialog({
 
     async function handleSubmit() {
         if (!amount || parseFloat(amount) <= 0) {
-            setError("Please enter a valid amount");
+            setError(t("invalidAmount"));
             return;
         }
         if (!accountId) {
-            setError("Please select an account");
+            setError(t("selectAccount"));
             return;
         }
 
@@ -218,7 +208,7 @@ export function CreateTransactionDialog({
 
         const result = await createTransaction(workspaceId, formData);
 
-        setIsLoading(false);
+        setIsLoading(true); // Wait for refresh
 
         if (result.success) {
             setOpen(false);
@@ -227,8 +217,10 @@ export function CreateTransactionDialog({
             setDescription("");
             setTitle("");
             setVendor("");
+            setIsLoading(false);
         } else {
-            setError(result.error?.message || "Failed to create transaction");
+            setError(result.error?.message || common("error"));
+            setIsLoading(false);
         }
     }
 
@@ -237,73 +229,110 @@ export function CreateTransactionDialog({
             <DialogTrigger asChild>
                 <Button>
                     <Plus className="mr-2 h-4 w-4" />
-                    New Transaction
+                    {t("newTransaction")}
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Add Transaction</DialogTitle>
+                    <DialogTitle>{t("addTransaction")}</DialogTitle>
                     <DialogDescription>
-                        Record a new expense, income, or transfer.
+                        {t("addTransactionDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex bg-muted p-1 rounded-lg mb-4">
-                    <button
-                        className={cn(
-                            "flex-1 text-sm font-medium py-1.5 rounded-md transition-colors",
-                            type === 'expense' ? "bg-background shadow text-red-600" : "text-muted-foreground hover:text-foreground"
-                        )}
-                        onClick={() => setType("expense")}
-                    >
-                        Outcome
-                    </button>
-                    <button
-                        className={cn(
-                            "flex-1 text-sm font-medium py-1.5 rounded-md transition-colors",
-                            type === 'income' ? "bg-background shadow text-green-600" : "text-muted-foreground hover:text-foreground"
-                        )}
-                        onClick={() => setType("income")}
-                    >
-                        Income
-                    </button>
-                    <button
-                        className={cn(
-                            "flex-1 text-sm font-medium py-1.5 rounded-md transition-colors",
-                            type === 'transfer' ? "bg-background shadow text-blue-600" : "text-muted-foreground hover:text-foreground"
-                        )}
-                        onClick={() => setType("transfer")}
-                    >
-                        Transfer
-                    </button>
-                </div>
-
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    <div className="space-y-2">
-                        <Label>Title (Optional)</Label>
-                        <Input
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="e.g. Weekly Groceries"
-                        />
+                <div className="grid gap-6 py-4">
+                    {/* Type Selector */}
+                    <div className="flex p-1 bg-muted rounded-lg">
+                        <button
+                            onClick={() => setType("expense")}
+                            className={cn(
+                                "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                type === "expense" ? "bg-background shadow-sm text-rose-600" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <TrendingDown className="h-4 w-4" />
+                            {t("expense")}
+                        </button>
+                        <button
+                            onClick={() => setType("income")}
+                            className={cn(
+                                "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                type === "income" ? "bg-background shadow-sm text-emerald-600" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <TrendingUp className="h-4 w-4" />
+                            {t("income")}
+                        </button>
+                        <button
+                            onClick={() => setType("transfer")}
+                            className={cn(
+                                "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                type === "transfer" ? "bg-background shadow-sm text-blue-600" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <ArrowRightLeft className="h-4 w-4" />
+                            {t("transfer")}
+                        </button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>Amount</Label>
+                            <Label>{t("date")}</Label>
                             <Input
-                                type="number"
-                                placeholder="0.00"
-                                step="0.01"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                className={cn(
-                                    "font-semibold",
-                                    type === 'expense' && "text-red-500",
-                                    type === 'income' && "text-green-500",
-                                    type === 'transfer' && "text-blue-500"
-                                )}
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>{type === 'transfer' ? t("fromAccount") : t("account")}</Label>
+                            <Select value={accountId} onValueChange={setAccountId}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {accounts.map((acc) => (
+                                        <SelectItem key={acc.id} value={acc.id}>
+                                            {acc.name} ({acc.base_currency})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {type === 'transfer' && (
+                        <div className="space-y-2">
+                            <Label>{t("toAccount")}</Label>
+                            <Select value={transferAccountId} onValueChange={setTransferAccountId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={t("selectAccount")} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {accounts.filter(a => a.id !== accountId).map((acc) => (
+                                        <SelectItem key={acc.id} value={acc.id}>
+                                            {acc.name} ({acc.base_currency})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-2 space-y-2">
+                            <Label>{t("amount")}</Label>
+                            <div className="relative">
+                                <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    className="pl-9 text-lg font-bold"
+                                />
+                                <Wallet className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label>Currency</Label>
@@ -312,7 +341,7 @@ export function CreateTransactionDialog({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {CURRENCIES.map(c => (
+                                    {CURRENCIES.map((c) => (
                                         <SelectItem key={c} value={c}>{c}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -321,135 +350,73 @@ export function CreateTransactionDialog({
                     </div>
 
                     {isForeign && (
-                        <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md border border-amber-200 dark:border-amber-800">
-                            <Label className="text-amber-800 dark:text-amber-200">Exchange Rate</Label>
-                            <div className="flex items-center gap-2 mt-2">
-                                <span className="text-xs text-muted-foreground">1 {currency} =</span>
-                                <div className="relative flex-1 max-w-[120px]">
+                        <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-muted-foreground">{t("fxRate")}</span>
+                                <div className="flex items-center gap-2">
+                                    {isFetchingRate && <Loader2 className="h-3 w-3 animate-spin" />}
                                     <Input
-                                        type="number"
+                                        className="h-7 w-20 text-right font-mono"
                                         value={fxRate}
                                         onChange={(e) => setFxRate(e.target.value)}
-                                        className="h-8 pr-8"
-                                        step="0.0001"
-                                        disabled={isFetchingRate}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={handleFetchRate}
-                                        disabled={isFetchingRate}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
-                                        title="Refresh Rate"
-                                    >
-                                        <Loader2 className={cn("h-3 w-3", isFetchingRate && "animate-spin")} />
-                                    </button>
                                 </div>
-                                <span className="text-xs text-muted-foreground">{selectedAccount?.base_currency}</span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground mt-1">
-                                Base Amount: {selectedAccount?.base_currency} {(parseFloat(amount || "0") * parseFloat(fxRate || "0")).toFixed(2)}
-                            </p>
+                            <div className="flex items-center justify-between text-sm font-medium">
+                                <span>Total in {selectedAccount?.base_currency}</span>
+                                <span>
+                                    {new Intl.NumberFormat(locale, { style: 'currency', currency: selectedAccount?.base_currency }).format(
+                                        (parseFloat(amount) || 0) * (parseFloat(fxRate) || 0)
+                                    )}
+                                </span>
+                            </div>
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Date</Label>
-                            <Input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Account</Label>
-                            <Select value={accountId} onValueChange={setAccountId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select account" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {accounts.map(acc => (
-                                        <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.base_currency})</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {type === "transfer" ? (
-                        <div className="space-y-2">
-                            <Label>To Account</Label>
-                            <Select value={transferAccountId} onValueChange={setTransferAccountId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select target account" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {accounts.filter(a => a.id !== accountId).map(acc => (
-                                        <SelectItem key={acc.id} value={acc.id}>{acc.name} ({acc.base_currency})</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ) : (
+                    {type !== 'transfer' && (
                         <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Category</Label>
-                                    <Select value={categoryId} onValueChange={setCategoryId}>
+                                    <Label>{t("category")}</Label>
+                                    <Select value={categoryId} onValueChange={(val) => {
+                                        setCategoryId(val);
+                                        setSubcategoryId("");
+                                    }}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select category" />
+                                            <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {filteredCategories.map(cat => (
-                                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                            {filteredCategories.map((cat) => (
+                                                <SelectItem key={cat.id} value={cat.id}>
+                                                    {cat.name}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Subcategory</Label>
-                                    <Select value={subcategoryId} onValueChange={setSubcategoryId} disabled={!categoryId}>
+                                    <Select
+                                        value={subcategoryId}
+                                        onValueChange={setSubcategoryId}
+                                        disabled={!categoryId}
+                                    >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select subcategory" />
+                                            <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {selectedCategory?.subcategories.map(sub => (
-                                                <SelectItem key={sub.id} value={sub.id}>{sub.name}</SelectItem>
+                                            {categories.find(c => c.id === categoryId)?.subcategories.map((sub) => (
+                                                <SelectItem key={sub.id} value={sub.id}>
+                                                    {sub.name}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {/* Show budget available for expense subcategory */}
-                                    {type === "expense" && subcategoryId && (() => {
-                                        const budget = budgets.find(b => b.subcategory_id === subcategoryId);
-                                        if (!budget) return null;
-
-                                        const isPAYG = budget.type === "PAYG";
-                                        const paygConfig = Array.isArray(budget.payg_config) ? budget.payg_config[0] : budget.payg_config;
-                                        const planConfig = Array.isArray(budget.plan_config) ? budget.plan_config[0] : budget.plan_config;
-
-                                        const budgetAmount = isPAYG
-                                            ? paygConfig?.monthly_cap
-                                            : (budget.current_reserved || 0);
-                                        const budgetCurrency = budget.currency || "USD";
-
-                                        return (
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                💰 Available Budget: {" "}
-                                                <span className="font-semibold text-primary">
-                                                    {new Intl.NumberFormat('en-US', {
-                                                        style: 'currency',
-                                                        currency: budgetCurrency
-                                                    }).format(budgetAmount || 0)}
-                                                </span>
-                                                {isPAYG ? " (Monthly Cap)" : " (Reserved)"}
-                                            </p>
-                                        );
-                                    })()}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Vendor / Payee</Label>
+                                <Label>{t("vendor")}</Label>
                                 <Popover open={openVendor} onOpenChange={setOpenVendor}>
                                     <PopoverTrigger asChild>
                                         <Button
@@ -458,26 +425,28 @@ export function CreateTransactionDialog({
                                             aria-expanded={openVendor}
                                             className="w-full justify-between font-normal"
                                         >
-                                            {vendor || <span className="text-muted-foreground">Select vendor...</span>}
+                                            {vendor || t("searchVendors")}
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-[300px] p-0" align="start">
+                                    <PopoverContent className="w-[450px] p-0">
                                         <Command>
-                                            <CommandInput placeholder="Search vendor..." value={vendor} onValueChange={setVendor} />
+                                            <CommandInput
+                                                placeholder={t("searchVendors")}
+                                                value={vendor}
+                                                onValueChange={(val) => {
+                                                    setVendor(val);
+                                                    setTitle(val);
+                                                }}
+                                            />
                                             <CommandList>
-                                                <CommandEmpty className="py-2 px-2">
-                                                    <p className="text-sm text-muted-foreground mb-2 px-2">No vendor found.</p>
+                                                <CommandEmpty>
                                                     <Button
-                                                        variant="secondary"
-                                                        size="sm"
-                                                        className="w-full h-8"
-                                                        onClick={() => {
-                                                            setVendor(vendor);
-                                                            setOpenVendor(false);
-                                                        }}
+                                                        variant="ghost"
+                                                        className="w-full justify-start text-xs"
+                                                        onClick={() => setOpenVendor(false)}
                                                     >
-                                                        Use "{vendor}"
+                                                        {common("add")} "{vendor}"
                                                     </Button>
                                                 </CommandEmpty>
                                                 <CommandGroup>
@@ -487,6 +456,7 @@ export function CreateTransactionDialog({
                                                             value={v}
                                                             onSelect={(currentValue) => {
                                                                 setVendor(currentValue);
+                                                                setTitle(currentValue);
                                                                 setOpenVendor(false);
                                                             }}
                                                         >
@@ -509,24 +479,28 @@ export function CreateTransactionDialog({
                     )}
 
                     <div className="space-y-2">
-                        <Label>Description</Label>
+                        <Label>{t("note")}</Label>
                         <Input
+                            placeholder="Dinner at Mama's"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Lunch at ..."
                         />
                     </div>
 
                     {error && (
-                        <div className="text-sm text-destructive">{error}</div>
+                        <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm text-rose-600 font-medium">
+                            {error}
+                        </div>
                     )}
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => handleOpenChange(false)}>
+                        {common("cancel")}
+                    </Button>
                     <Button onClick={handleSubmit} disabled={isLoading}>
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Transaction
+                        {t("addTransaction")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
