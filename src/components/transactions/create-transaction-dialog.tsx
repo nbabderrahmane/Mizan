@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/popover";
 import { createTransaction, getUniqueVendors } from "@/lib/actions/transaction";
 import { fetchFxRateAction } from "@/lib/services/fx";
+import { BudgetWithConfigs } from "@/lib/validations/budget";
 
 interface Account {
     id: string;
@@ -52,10 +53,23 @@ interface Category {
     subcategories: { id: string; name: string }[];
 }
 
+interface PrefilledPayment {
+    id: string;
+    name: string;
+    subcategory_id: string;
+    due_date: string;
+    amount: number;
+    currency: string;
+}
+
 interface CreateTransactionDialogProps {
     workspaceId: string;
     accounts: Account[];
     categories: Category[];
+    workspaceCurrency?: string;
+    budgets?: BudgetWithConfigs[];
+    prefilled?: PrefilledPayment | null;
+    onClose?: () => void;
 }
 
 const CURRENCIES = ["USD", "EUR", "GBP", "MAD", "AED"];
@@ -64,6 +78,10 @@ export function CreateTransactionDialog({
     workspaceId,
     accounts,
     categories,
+    workspaceCurrency = "USD",
+    budgets = [],
+    prefilled,
+    onClose,
 }: CreateTransactionDialogProps) {
     const router = useRouter();
     const [open, setOpen] = useState(false);
@@ -75,7 +93,7 @@ export function CreateTransactionDialog({
     const [accountId, setAccountId] = useState(accounts[0]?.id || "");
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
     const [amount, setAmount] = useState("");
-    const [currency, setCurrency] = useState(accounts[0]?.base_currency || "USD");
+    const [currency, setCurrency] = useState(accounts[0]?.base_currency || workspaceCurrency);
     const [description, setDescription] = useState("");
     const [categoryId, setCategoryId] = useState("");
     const [subcategoryId, setSubcategoryId] = useState("");
@@ -110,6 +128,35 @@ export function CreateTransactionDialog({
             setCurrency(selectedAccount.base_currency);
         }
     }, [accountId, accounts]);
+
+    // Handle prefilled data from pending payments
+    useEffect(() => {
+        if (prefilled) {
+            setOpen(true);
+            setType("expense");
+            setAmount(prefilled.amount.toString());
+            setCurrency(prefilled.currency);
+            setTitle(prefilled.name);
+
+            // Find category from subcategory
+            for (const cat of categories) {
+                const sub = cat.subcategories.find(s => s.id === prefilled.subcategory_id);
+                if (sub) {
+                    setCategoryId(cat.id);
+                    setSubcategoryId(sub.id);
+                    break;
+                }
+            }
+        }
+    }, [prefilled, categories]);
+
+    // Call onClose when dialog closes
+    const handleOpenChange = (isOpen: boolean) => {
+        setOpen(isOpen);
+        if (!isOpen && onClose) {
+            onClose();
+        }
+    };
 
     useEffect(() => {
         if (open) {
@@ -186,7 +233,7 @@ export function CreateTransactionDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button>
                     <Plus className="mr-2 h-4 w-4" />
@@ -371,6 +418,33 @@ export function CreateTransactionDialog({
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    {/* Show budget available for expense subcategory */}
+                                    {type === "expense" && subcategoryId && (() => {
+                                        const budget = budgets.find(b => b.subcategory_id === subcategoryId);
+                                        if (!budget) return null;
+
+                                        const isPAYG = budget.type === "PAYG";
+                                        const paygConfig = Array.isArray(budget.payg_config) ? budget.payg_config[0] : budget.payg_config;
+                                        const planConfig = Array.isArray(budget.plan_config) ? budget.plan_config[0] : budget.plan_config;
+
+                                        const budgetAmount = isPAYG
+                                            ? paygConfig?.monthly_cap
+                                            : (budget.current_reserved || 0);
+                                        const budgetCurrency = budget.currency || "USD";
+
+                                        return (
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                💰 Available Budget: {" "}
+                                                <span className="font-semibold text-primary">
+                                                    {new Intl.NumberFormat('en-US', {
+                                                        style: 'currency',
+                                                        currency: budgetCurrency
+                                                    }).format(budgetAmount || 0)}
+                                                </span>
+                                                {isPAYG ? " (Monthly Cap)" : " (Reserved)"}
+                                            </p>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 

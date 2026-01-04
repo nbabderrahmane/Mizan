@@ -49,16 +49,25 @@ export async function createTransaction(
             date: formData.get("date"),
             amount: parseFloat(formData.get("amount") as string),
             currency: formData.get("currency"),
-            title: formData.get("title"),
-            vendor: formData.get("vendor"),
-            description: formData.get("description"),
-            categoryId: formData.get("categoryId") || undefined,
-            subcategoryId: formData.get("subcategoryId") || undefined,
-            transferAccountId: formData.get("transferAccountId") || undefined,
+            title: (formData.get("title") as string) || undefined,
+            vendor: (formData.get("vendor") as string) || undefined,
+            description: (formData.get("description") as string) || undefined,
+            categoryId: (formData.get("categoryId") as string) || undefined,
+            subcategoryId: (formData.get("subcategoryId") as string) || undefined,
+            transferAccountId: (formData.get("transferAccountId") as string) || undefined,
             fxRate: formData.get("fxRate") ? parseFloat(formData.get("fxRate") as string) : undefined,
         };
 
-        const validated = createTransactionSchema.parse(rawData);
+        const result = createTransactionSchema.safeParse(rawData);
+        if (!result.success) {
+            const errorMsg = result.error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+            return {
+                success: false,
+                error: createSafeError(`Validation: ${errorMsg}`, logger.correlationId),
+            };
+        }
+        const validated = result.data;
+
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -87,7 +96,7 @@ export async function createTransaction(
         // Get Account Details
         const { data: account } = await supabase
             .from("accounts")
-            .select("base_currency")
+            .select("base_currency, last_reconciled_at")
             .eq("id", validated.accountId)
             .single();
 
@@ -96,6 +105,17 @@ export async function createTransaction(
                 success: false,
                 error: createSafeError("Account not found.", logger.correlationId),
             };
+        }
+
+        // Lock Check
+        if (account.last_reconciled_at) {
+            const frozenDateStr = new Date(account.last_reconciled_at).toISOString().slice(0, 10);
+            if (validated.date < frozenDateStr) {
+                return {
+                    success: false,
+                    error: createSafeError("This period is locked (account reconciled).", logger.correlationId),
+                };
+            }
         }
 
         // FX logic
@@ -175,6 +195,7 @@ export async function createTransaction(
 
         revalidatePath(`/w/${workspaceId}/dashboard`);
         revalidatePath(`/w/${workspaceId}/transactions`);
+        revalidatePath(`/w/${workspaceId}/reports`);
         return { success: true, data: transaction };
 
     } catch (error) {
@@ -199,16 +220,24 @@ export async function updateTransaction(
             date: formData.get("date"),
             amount: parseFloat(formData.get("amount") as string),
             currency: formData.get("currency"),
-            title: formData.get("title"),
-            vendor: formData.get("vendor"),
-            description: formData.get("description"),
-            categoryId: formData.get("categoryId") || undefined,
-            subcategoryId: formData.get("subcategoryId") || undefined,
-            transferAccountId: formData.get("transferAccountId") || undefined,
+            title: (formData.get("title") as string) || undefined,
+            vendor: (formData.get("vendor") as string) || undefined,
+            description: (formData.get("description") as string) || undefined,
+            categoryId: (formData.get("categoryId") as string) || undefined,
+            subcategoryId: (formData.get("subcategoryId") as string) || undefined,
+            transferAccountId: (formData.get("transferAccountId") as string) || undefined,
             fxRate: formData.get("fxRate") ? parseFloat(formData.get("fxRate") as string) : undefined,
         };
 
-        const validated = createTransactionSchema.parse(rawData);
+        const result = createTransactionSchema.safeParse(rawData);
+        if (!result.success) {
+            const errorMsg = result.error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+            return {
+                success: false,
+                error: createSafeError(`Validation: ${errorMsg}`, logger.correlationId),
+            };
+        }
+        const validated = result.data;
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -268,6 +297,7 @@ export async function updateTransaction(
 
         revalidatePath(`/w/${workspaceId}/dashboard`);
         revalidatePath(`/w/${workspaceId}/transactions`);
+        revalidatePath(`/w/${workspaceId}/reports`);
         return { success: true, data: transaction };
 
     } catch (error) {

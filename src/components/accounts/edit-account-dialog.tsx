@@ -7,15 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateAccount } from "@/lib/actions/account";
 import { Loader2 } from "lucide-react";
-import { AccountWithBalance } from "@/lib/actions/account";
+import { Account } from "@/lib/actions/account";
 
 interface EditAccountDialogProps {
-    account: AccountWithBalance;
+    workspaceId: string;
+    account: Account;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
 export function EditAccountDialog({
+    workspaceId,
     account,
     open,
     onOpenChange,
@@ -43,7 +45,7 @@ export function EditAccountDialog({
         formData.append("opening_balance", openingBalance);
 
         try {
-            const result = await updateAccount(account.id, formData);
+            const result = await updateAccount(account.id, formData, workspaceId);
             if (!result.success) {
                 setError(result.error?.message || "Failed to update account");
             } else {

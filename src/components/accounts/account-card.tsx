@@ -17,7 +17,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { AccountWithBalance } from "@/lib/actions/account";
+import type { Account, AccountWithBalance } from "@/lib/actions/account";
 
 const accountTypeConfig = {
     bank: {
@@ -52,8 +52,8 @@ function formatCurrency(amount: number, currency: string): string {
 
 interface AccountCardProps {
     account: AccountWithBalance;
-    onEdit?: (account: AccountWithBalance) => void;
-    onReconcile?: (account: AccountWithBalance) => void;
+    onEdit?: (account: Account) => void;
+    onReconcile?: (account: Account) => void;
     onArchive?: (accountId: string) => void;
 }
 
@@ -106,28 +106,14 @@ export function AccountCard({ account, onEdit, onReconcile, onArchive }: Account
 
                 <div className="mt-4 space-y-2">
                     <div className="flex items-baseline justify-between">
-                        <span className="text-sm text-muted-foreground">Balance</span>
+                        <span className="text-sm text-muted-foreground">Available Balance</span>
                         <span className="text-lg font-semibold">
-                            {formatCurrency(account.balance, account.base_currency)}
+                            {formatCurrency(
+                                account.available ?? account.opening_balance ?? 0,
+                                account.base_currency
+                            )}
                         </span>
                     </div>
-
-                    {account.reserved > 0 && (
-                        <>
-                            <div className="flex items-baseline justify-between text-sm">
-                                <span className="text-muted-foreground">Reserved</span>
-                                <span className="text-orange-600 dark:text-orange-400">
-                                    {formatCurrency(account.reserved, account.base_currency)}
-                                </span>
-                            </div>
-                            <div className="flex items-baseline justify-between text-sm">
-                                <span className="text-muted-foreground">Available</span>
-                                <span className="font-medium text-green-600 dark:text-green-400">
-                                    {formatCurrency(account.available, account.base_currency)}
-                                </span>
-                            </div>
-                        </>
-                    )}
                 </div>
             </div>
         </Link>
@@ -136,8 +122,8 @@ export function AccountCard({ account, onEdit, onReconcile, onArchive }: Account
 
 interface AccountListProps {
     accounts: AccountWithBalance[];
-    onEdit?: (account: AccountWithBalance) => void;
-    onReconcile?: (account: AccountWithBalance) => void;
+    onEdit?: (account: Account) => void;
+    onReconcile?: (account: Account) => void;
     onArchive?: (accountId: string) => void;
 }
 

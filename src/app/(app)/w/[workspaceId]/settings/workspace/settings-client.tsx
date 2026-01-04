@@ -29,12 +29,40 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { updateWorkspace, deleteWorkspace } from "@/lib/actions/workspace";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+    MoreHorizontal,
+    UserMinus,
+    Shield,
+    User,
+    UserCog,
+    PlusCircle
+} from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
+import { format } from "date-fns";
 
 interface SettingsPageClientProps {
     workspaceId: string;
     workspaceName: string;
     currency: string;
     isOwner: boolean;
+    currentUserId: string;
 }
 
 const CURRENCIES = [
@@ -53,6 +81,7 @@ export function SettingsPageClient({
     workspaceName,
     currency,
     isOwner,
+    currentUserId,
 }: SettingsPageClientProps) {
     const router = useRouter();
     const [name, setName] = useState(workspaceName);
@@ -65,14 +94,13 @@ export function SettingsPageClient({
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Sync state with props when they change (e.g. after save & refresh)
+    // Sync state with props when they change
     useEffect(() => {
         setName(workspaceName);
         setSelectedCurrency(currency || "USD");
     }, [workspaceName, currency]);
 
     async function handleSave() {
-        console.log("Saving settings...", { name, selectedCurrency });
         setIsSaving(true);
         setError(null);
         setShowSuccess(false);
@@ -81,9 +109,7 @@ export function SettingsPageClient({
         formData.append("name", name);
         formData.append("currency", selectedCurrency);
 
-        console.log("Calling updateWorkspace action...");
         const result = await updateWorkspace(workspaceId, formData);
-        console.log("Action result:", result);
 
         setIsSaving(false);
 
@@ -96,6 +122,7 @@ export function SettingsPageClient({
         }
     }
 
+
     async function handleDelete() {
         if (confirmText !== workspaceName) return;
 
@@ -106,10 +133,8 @@ export function SettingsPageClient({
 
         if (result.success) {
             if (result.data) {
-                // If there's another workspace, redirect to it
                 router.push(`/w/${result.data}/dashboard`);
             } else {
-                // Otherwise redirect to create a new one
                 router.push("/onboarding/create-workspace");
             }
         } else {
@@ -119,113 +144,116 @@ export function SettingsPageClient({
     }
 
     return (
-        <div className="max-w-2xl space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold">Settings</h1>
-                <p className="text-muted-foreground">
-                    Manage workspace settings
-                </p>
+        <div className="max-w-4xl space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">Settings</h1>
+                    <p className="text-muted-foreground">
+                        Manage workspace settings and members
+                    </p>
+                </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Generals</CardTitle>
-                    <CardDescription>
-                        Update your workspace details
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Workspace Name</Label>
-                        <Input
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            disabled={!isOwner}
-                        />
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Generals</CardTitle>
+                            <CardDescription>
+                                Update your workspace details
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Workspace Name</Label>
+                                <Input
+                                    id="name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    disabled={!isOwner}
+                                />
+                            </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="currency">Currency</Label>
-                        <Select
-                            value={selectedCurrency}
-                            onValueChange={setSelectedCurrency}
-                            disabled={!isOwner}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select currency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {CURRENCIES.map((c) => (
-                                    <SelectItem key={c.code} value={c.code}>
-                                        {c.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                            This will be used as the default currency for reports.
-                        </p>
-                    </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="currency">Currency</Label>
+                                <Select
+                                    value={selectedCurrency}
+                                    onValueChange={setSelectedCurrency}
+                                    disabled={!isOwner}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CURRENCIES.map((c) => (
+                                            <SelectItem key={c.code} value={c.code}>
+                                                {c.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                    {error && (
-                        <p className="text-sm text-destructive">{error}</p>
-                    )}
+                            {isOwner && (
+                                <div className="flex items-center justify-end gap-4 pt-2">
+                                    {showSuccess && (
+                                        <span className="text-sm text-green-600 flex items-center animate-in fade-in slide-in-from-right-2">
+                                            <Check className="w-4 h-4 mr-1" />
+                                            Saved!
+                                        </span>
+                                    )}
+                                    <Button onClick={handleSave} disabled={isSaving}>
+                                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {!isSaving && !showSuccess && <Save className="mr-2 h-4 w-4" />}
+                                        Save Changes
+                                    </Button>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Workspace Info</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <Label>ID</Label>
+                                <p className="text-sm text-muted-foreground mt-1 font-mono break-all bg-muted p-2 rounded">
+                                    {workspaceId}
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {isOwner && (
-                        <div className="flex items-center justify-end gap-4 pt-2">
-                            {showSuccess && (
-                                <span className="text-sm text-green-600 flex items-center animate-in fade-in slide-in-from-right-2">
-                                    <Check className="w-4 h-4 mr-1" />
-                                    Saved!
-                                </span>
-                            )}
-                            <Button onClick={handleSave} disabled={isSaving}>
-                                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {!isSaving && !showSuccess && <Save className="mr-2 h-4 w-4" />}
-                                Save Changes
-                            </Button>
-                        </div>
+                        <Card className="border-destructive/50">
+                            <CardHeader>
+                                <CardTitle className="text-destructive flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5" />
+                                    Danger Zone
+                                </CardTitle>
+                                <CardDescription>
+                                    Irreversible actions that affect your workspace
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Button
+                                    variant="destructive"
+                                    className="w-full"
+                                    onClick={() => setDeleteDialogOpen(true)}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete Workspace
+                                </Button>
+                            </CardContent>
+                        </Card>
                     )}
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Workspace Info</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div>
-                        <Label>ID</Label>
-                        <p className="text-sm text-muted-foreground mt-1 font-mono">
-                            {workspaceId}
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {isOwner && (
-                <Card className="border-destructive/50">
-                    <CardHeader>
-                        <CardTitle className="text-destructive flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5" />
-                            Danger Zone
-                        </CardTitle>
-                        <CardDescription>
-                            Irreversible actions that affect your workspace
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button
-                            variant="destructive"
-                            onClick={() => setDeleteDialogOpen(true)}
-                        >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Workspace
-                        </Button>
-                    </CardContent>
-                </Card>
-            )}
+                </div>
+            </div>
 
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>

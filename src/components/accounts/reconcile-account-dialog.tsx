@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { reconcileAccount } from "@/lib/actions/account";
 import { Loader2, AlertTriangle } from "lucide-react";
-import { AccountWithBalance } from "@/lib/actions/account";
+import { Account } from "@/lib/actions/account";
 
 interface ReconcileAccountDialogProps {
-    account: AccountWithBalance;
+    account: Account;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -20,11 +20,13 @@ export function ReconcileAccountDialog({
     open,
     onOpenChange,
 }: ReconcileAccountDialogProps) {
-    const [actualBalance, setActualBalance] = useState<string>(account.available.toString());
+    const [actualBalance, setActualBalance] = useState<string>(
+        ((account as any).available ?? account.opening_balance ?? 0).toString()
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const systemBalance = account.available; // Assuming we reconcile 'available' balance
+    const systemBalance = (account as any).available ?? account.opening_balance ?? 0;
     const diff = (parseFloat(actualBalance) || 0) - systemBalance;
     const isAdjustmentNeeded = Math.abs(diff) > 0.01;
 

@@ -8,7 +8,7 @@ import { AccountList } from "@/components/accounts/account-card";
 import { CreateAccountDialog } from "@/components/accounts/create-account-dialog";
 import { EditAccountDialog } from "@/components/accounts/edit-account-dialog";
 import { ReconcileAccountDialog } from "@/components/accounts/reconcile-account-dialog";
-import type { AccountWithBalance } from "@/lib/actions/account";
+import type { Account, AccountWithBalance } from "@/lib/actions/account";
 import { archiveAccount } from "@/lib/actions/account";
 
 interface AccountsPageClientProps {
@@ -24,22 +24,22 @@ export function AccountsPageClient({
 }: AccountsPageClientProps) {
     const router = useRouter();
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [accountToEdit, setAccountToEdit] = useState<AccountWithBalance | null>(null);
-    const [accountToReconcile, setAccountToReconcile] = useState<AccountWithBalance | null>(null);
+    const [accountToEdit, setAccountToEdit] = useState<Account | null>(null);
+    const [accountToReconcile, setAccountToReconcile] = useState<Account | null>(null);
 
     // Old handleEdit was redirecting to detail page (not implemented yet).
     // New behavior: Open Edit Dialog.
-    function handleEdit(account: AccountWithBalance) {
+    function handleEdit(account: Account) {
         setAccountToEdit(account);
     }
 
-    function handleReconcile(account: AccountWithBalance) {
+    function handleReconcile(account: Account) {
         setAccountToReconcile(account);
     }
 
     async function handleArchive(accountId: string) {
         if (!confirm("Are you sure you want to archive this account?")) return;
-        await archiveAccount(accountId);
+        await archiveAccount(accountId, workspaceId);
         router.refresh();
     }
 
@@ -78,6 +78,7 @@ export function AccountsPageClient({
 
             {canManage && accountToEdit && (
                 <EditAccountDialog
+                    workspaceId={workspaceId}
                     account={accountToEdit}
                     open={!!accountToEdit}
                     onOpenChange={(open: boolean) => !open && setAccountToEdit(null)}

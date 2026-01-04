@@ -13,6 +13,7 @@ export const createBudgetSchema = z.object({
 
     // PAYG
     monthlyCap: z.number().positive().optional(),
+    isRecurring: z.boolean().default(false).optional(),
 
     // Plan & Spend
     targetAmount: z.number().positive().optional(),

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PiggyBank, CreditCard, ArrowRight, Loader2, Check } from "lucide-react";
-import { applyMonthlyContributions, confirmPayment } from "@/lib/actions/budget";
+import { PiggyBank, CreditCard, ArrowRight, Loader2, Plus } from "lucide-react";
+import { applyMonthlyContributions } from "@/lib/actions/budget";
 import { useToast } from "@/hooks/use-toast";
 
 interface DashboardInteractivesProps {
@@ -16,8 +17,8 @@ interface DashboardInteractivesProps {
 }
 
 export function DashboardInteractives({ workspaceId, currency, dueAmount, pendingPayments, accounts }: DashboardInteractivesProps) {
+    const router = useRouter();
     const [isApplying, setIsApplying] = useState(false);
-    const [confirmingId, setConfirmingId] = useState<string | null>(null);
     const { toast } = useToast();
 
     async function handleApply() {
@@ -39,32 +40,9 @@ export function DashboardInteractives({ workspaceId, currency, dueAmount, pendin
         }
     }
 
-    async function handleConfirm(paymentId: string) {
-        if (accounts.length === 0) {
-            toast({
-                title: "No Account",
-                description: "User must have at least one account to confirm payment.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        setConfirmingId(paymentId);
-        const res = await confirmPayment(workspaceId, paymentId, accounts[0].id);
-        setConfirmingId(null);
-
-        if (res.success) {
-            toast({
-                title: "Payment Confirmed",
-                description: "The payment has been recorded as a transaction.",
-            });
-        } else {
-            toast({
-                title: "Confirmation Failed",
-                description: res.error?.message || "Something went wrong",
-                variant: "destructive",
-            });
-        }
+    function handleConfirmPayment(paymentId: string) {
+        // Navigate to transactions page with payment ID to pre-fill the form
+        router.push(`/w/${workspaceId}/transactions?paymentId=${paymentId}`);
     }
 
     return (
@@ -119,11 +97,10 @@ export function DashboardInteractives({ workspaceId, currency, dueAmount, pendin
                                         size="sm"
                                         variant="outline"
                                         className="h-8 text-xs"
-                                        onClick={() => handleConfirm(payment.id)}
-                                        disabled={confirmingId === payment.id}
+                                        onClick={() => handleConfirmPayment(payment.id)}
                                     >
-                                        {confirmingId === payment.id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
-                                        Confirm
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        Pay
                                     </Button>
                                 </div>
                             </div>

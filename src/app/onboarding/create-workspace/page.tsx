@@ -13,6 +13,13 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { createWorkspace } from "@/lib/actions/workspace";
 import { signOut } from "@/app/auth/actions";
 
@@ -65,6 +72,34 @@ export default function CreateWorkspacePage() {
                                 disabled={isLoading}
                                 autoFocus
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="currency">Currency</Label>
+                            <Select name="currency" defaultValue="USD" disabled={isLoading}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="USD">USD ($)</SelectItem>
+                                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                                    <SelectItem value="MAD">MAD (DH)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="currency">Currency</Label>
+                            <Select name="currency" defaultValue="USD" disabled={isLoading}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="USD">USD ($)</SelectItem>
+                                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                                    <SelectItem value="MAD">MAD (DH)</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading ? "Creating..." : "Create Workspace"}

@@ -53,17 +53,36 @@ export async function updateSession(request: NextRequest) {
 
         // Redirect authenticated users from auth pages or landing page
         if (isAuthPage || isLandingPage) {
+            // Check Admin Status
+            const { data: admin } = await supabase
+                .from("app_admins")
+                .select("role")
+                .eq("user_id", user.id)
+                .single();
+            const isSupportAdmin = !!admin;
+
+            // Check Workspace Membership
             const { data: memberships } = await supabase
                 .from("workspace_members")
                 .select("workspace_id")
                 .eq("user_id", user.id)
                 .limit(1);
+            const hasWorkspaces = memberships && memberships.length > 0;
 
             const url = request.nextUrl.clone();
-            if (memberships && memberships.length > 0) {
+
+            if (isSupportAdmin && hasWorkspaces) {
+                // If both, let them choose
+                url.pathname = "/role-selection";
+            } else if (isSupportAdmin) {
+                // Admin only -> Admin Dashboard
+                url.pathname = "/admin";
+            } else if (hasWorkspaces) {
+                // Member only -> Workspace Dashboard
                 url.pathname = `/w/${memberships[0].workspace_id}/dashboard`;
             } else {
-                url.pathname = "/onboarding/create-workspace";
+                // Neither -> Onboarding
+                url.pathname = "/onboarding";
             }
             return NextResponse.redirect(url);
         }

@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, PiggyBank, CreditCard, MoreHorizontal, AlertCircle, ChevronRight, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, PiggyBank, CreditCard, MoreHorizontal, AlertCircle, ChevronRight, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { BudgetWithConfigs } from "@/lib/validations/budget";
 import { CreateBudgetWizard } from "@/components/budgets/create-budget-wizard";
+import { EditBudgetDialog } from "@/components/budgets/edit-budget-dialog";
 import { deleteBudget } from "@/lib/actions/budget";
-import { useToast } from "@/hooks/use-toast"; // assuming hook exists, otherwise use standard window.confirm for MVP
+import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
@@ -32,11 +34,13 @@ interface BudgetsClientProps {
     initialBudgets: BudgetWithConfigs[];
     categories: any[];
     accounts?: any[];
+    workspaceCurrency?: string;
 }
 
-export function BudgetsClient({ workspaceId, initialBudgets, categories, accounts = [] }: BudgetsClientProps) {
+export function BudgetsClient({ workspaceId, initialBudgets, categories, accounts = [], workspaceCurrency = "USD" }: BudgetsClientProps) {
     const [budgets, setBudgets] = useState(initialBudgets);
     const [showWizard, setShowWizard] = useState(false);
+    const [budgetToEdit, setBudgetToEdit] = useState<BudgetWithConfigs | null>(null);
     const { toast } = useToast();
 
     const handleDelete = async (budgetId: string) => {
@@ -112,6 +116,8 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
                         key={group.categoryName}
                         group={group}
                         onDelete={handleDelete}
+                        onEdit={setBudgetToEdit}
+                        workspaceId={workspaceId}
                     />
                 ))}
 
@@ -133,16 +139,29 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
                 workspaceId={workspaceId}
                 categories={categories}
                 accounts={accounts}
+                workspaceCurrency={workspaceCurrency}
                 onSuccess={(newBudget) => {
                     setBudgets([newBudget, ...budgets]);
                     setShowWizard(false);
                 }}
             />
+
+            {budgetToEdit && (
+                <EditBudgetDialog
+                    budget={budgetToEdit}
+                    workspaceId={workspaceId}
+                    open={!!budgetToEdit}
+                    onOpenChange={(open) => !open && setBudgetToEdit(null)}
+                    onSuccess={(updated) => {
+                        setBudgets(budgets.map(b => b.id === updated.id ? updated : b));
+                    }}
+                />
+            )}
         </div>
     );
 }
 
-function CategorySection({ group, onDelete }: { group: { categoryName: string, items: BudgetWithConfigs[], totalBudget: number, totalReserved: number }, onDelete: (id: string) => void }) {
+function CategorySection({ group, onDelete, onEdit, workspaceId }: { group: { categoryName: string, items: BudgetWithConfigs[], totalBudget: number, totalReserved: number }, onDelete: (id: string) => void, onEdit: (budget: BudgetWithConfigs) => void, workspaceId: string }) {
     // Determine the primary currency for display from the first item (heuristic)
     const displayCurrency = group.items[0]?.currency || 'USD';
 
@@ -176,7 +195,7 @@ function CategorySection({ group, onDelete }: { group: { categoryName: string, i
                 </TableHeader>
                 <TableBody>
                     {group.items.map(budget => (
-                        <BudgetRow key={budget.id} budget={budget} onDelete={onDelete} />
+                        <BudgetRow key={budget.id} budget={budget} onDelete={onDelete} onEdit={onEdit} workspaceId={workspaceId} />
                     ))}
                 </TableBody>
             </Table>
@@ -184,7 +203,8 @@ function CategorySection({ group, onDelete }: { group: { categoryName: string, i
     )
 }
 
-function BudgetRow({ budget, onDelete }: { budget: BudgetWithConfigs, onDelete: (id: string) => void }) {
+function BudgetRow({ budget, onDelete, onEdit, workspaceId }: { budget: BudgetWithConfigs, onDelete: (id: string) => void, onEdit: (budget: BudgetWithConfigs) => void, workspaceId: string }) {
+    const router = useRouter();
     const isPAYG = budget.type === "PAYG";
     const reserved = budget.current_reserved || 0;
 
@@ -255,22 +275,66 @@ function BudgetRow({ budget, onDelete }: { budget: BudgetWithConfigs, onDelete: 
             </TableCell>
             <TableCell>
                 {isPAYG ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-400 w-0" /> {/* TODO: Connect real spend */}
-                        </div>
-                        <span className="whitespace-nowrap">Cap Only</span>
-                    </div>
+                    // PAYG: Show spending vs monthly cap
+                    (() => {
+                        const cap = paygConfig?.monthly_cap || 0;
+                        const spending = (budget as any).spending_amount || 0;
+                        const spendingProgress = cap ? (spending / cap) * 100 : 0;
+                        const isOverBudget = spendingProgress > 100;
+
+                        return (
+                            <div className="space-y-1.5">
+                                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all ${isOverBudget ? 'bg-red-500' : 'bg-blue-400'}`}
+                                        style={{ width: `${Math.min(100, spendingProgress)}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-muted-foreground">
+                                    <span className={isOverBudget ? 'text-red-500 font-medium' : ''}>
+                                        {Math.round(spendingProgress)}% Spent
+                                    </span>
+                                    <span>
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: budget.currency || 'USD', maximumFractionDigits: 0 }).format(spending)} / {new Intl.NumberFormat('en-US', { style: 'currency', currency: budget.currency || 'USD', maximumFractionDigits: 0 }).format(cap)}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })()
                 ) : (
-                    <div className="space-y-1.5">
-                        <Progress value={progress} className="h-2 bg-green-100 [&>div]:bg-green-500" />
-                        <div className="flex justify-between text-[10px] text-muted-foreground">
-                            <span>{Math.round(progress)}% Funded</span>
-                            {planConfig?.due_date && (
-                                <span>Due {planConfig.due_date}</span>
-                            )}
-                        </div>
-                    </div>
+                    // PLAN_SPEND: Show % Funded (reserved vs target) or "Paid" if spending exists
+                    (() => {
+                        const today = new Date().toISOString().slice(0, 10);
+                        const isDue = planConfig?.due_date && planConfig.due_date <= today;
+                        const spendingAmount = (budget as any).spending_amount || 0;
+                        const isPaid = isDue && spendingAmount > 0;
+
+                        if (isPaid) {
+                            return (
+                                <div className="flex items-center gap-2">
+                                    <Badge className="bg-green-500 text-white hover:bg-green-500">
+                                        <Check className="h-3 w-3 mr-1" />
+                                        Paid
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: budget.currency || 'USD', maximumFractionDigits: 0 }).format(spendingAmount)}
+                                    </span>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className="space-y-1.5">
+                                <Progress value={progress} className="h-2 bg-green-100 [&>div]:bg-green-500" />
+                                <div className="flex justify-between text-[10px] text-muted-foreground">
+                                    <span>{Math.round(progress)}% Funded</span>
+                                    {planConfig?.due_date && (
+                                        <span>Due {planConfig.due_date}</span>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })()
                 )}
             </TableCell>
             <TableCell className="text-right">
@@ -293,8 +357,10 @@ function BudgetRow({ budget, onDelete }: { budget: BudgetWithConfigs, onDelete: 
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit Budget</DropdownMenuItem>
-                        <DropdownMenuItem>View Transactions</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => onEdit(budget)}>Edit Budget</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => router.push(`/w/${workspaceId}/transactions?subcategory=${budget.subcategory_id}`)}>
+                            View Transactions
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                             className="text-destructive"
                             onSelect={() => onDelete(budget.id)}

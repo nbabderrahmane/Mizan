@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createLogger, createSafeError } from "@/lib/logger";
-import { signUpSchema, signInSchema } from "@/lib/validations/auth";
+import { signUpSchema, signInSchema, changePasswordSchema } from "@/lib/validations/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -23,7 +23,8 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
         const rawData = {
             email: formData.get("email") as string,
             password: formData.get("password") as string,
-            fullName: formData.get("fullName") as string,
+            firstName: formData.get("firstName") as string,
+            lastName: formData.get("lastName") as string,
         };
 
         // Validate input
@@ -58,7 +59,7 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
             password: validatedData.password,
             options: {
                 data: {
-                    full_name: validatedData.fullName,
+                    full_name: `${validatedData.firstName} ${validatedData.lastName}`.trim(),
                 },
             },
         });
@@ -208,4 +209,137 @@ export async function signOut(): Promise<void> {
 
     revalidatePath("/", "layout");
     redirect("/");
+}
+
+/**
+ * Send a password reset email to the user.
+ */
+export async function forgotPassword(formData: FormData): Promise<AuthResult> {
+    const logger = createLogger();
+    const email = formData.get("email") as string;
+
+    if (!email) {
+        return { success: false, error: createSafeError("Email is required", logger.correlationId) };
+    }
+
+    try {
+        const supabase = await createClient();
+
+        // Use a generic origin for the reset link
+        const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${origin}/auth/reset-password`,
+        });
+
+        if (error) {
+            logger.error("Forgot password failed", error, { action: "forgotPassword" });
+            return { success: false, error: createSafeError(error.message, logger.correlationId) };
+        }
+
+        return { success: true };
+    } catch (error) {
+        logger.error("Unexpected error in forgotPassword", error as Error, { action: "forgotPassword" });
+        return { success: false, error: createSafeError("An unexpected error occurred", logger.correlationId) };
+    }
+}
+
+/**
+ * Update the current user's password (used in reset flow).
+ */
+export async function updatePassword(password: string): Promise<AuthResult> {
+    const logger = createLogger();
+
+    try {
+        const supabase = await createClient();
+        const { error } = await supabase.auth.updateUser({
+            password: password,
+        });
+
+        if (error) {
+            logger.error("Update password failed", error, { action: "updatePassword" });
+            return { success: false, error: createSafeError(error.message, logger.correlationId) };
+        }
+
+        return { success: true };
+    } catch (error) {
+        logger.error("Unexpected error in updatePassword", error as Error, { action: "updatePassword" });
+        return { success: false, error: createSafeError("An unexpected error occurred", logger.correlationId) };
+    }
+}
+
+/**
+ * Change the authenticated user's password.
+ * Verifies current password before updating.
+ */
+export async function changePassword(formData: FormData): Promise<AuthResult> {
+    const logger = createLogger();
+    logger.info("changePassword action started", { action: "changePassword" });
+
+    try {
+        const rawData = {
+            currentPassword: formData.get("currentPassword") as string,
+            newPassword: formData.get("newPassword") as string,
+            confirmPassword: formData.get("confirmPassword") as string,
+        };
+
+        // Validate input
+        const validatedData = changePasswordSchema.parse(rawData);
+
+        const supabase = await createClient();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user || !user.email) {
+            return { success: false, error: createSafeError("User not authenticated", logger.correlationId) };
+        }
+
+        // Verify current password by attempting a sign-in
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: validatedData.currentPassword,
+        });
+
+        if (signInError) {
+            logger.warn("Current password verification failed", { action: "changePassword" });
+            return {
+                success: false,
+                error: createSafeError("Incorrect current password", logger.correlationId)
+            };
+        }
+
+        // Update to new password
+        const { error: updateError } = await supabase.auth.updateUser({
+            password: validatedData.newPassword,
+        });
+
+        if (updateError) {
+            logger.error("Password update failed", updateError, { action: "changePassword" });
+            return {
+                success: false,
+                error: createSafeError(updateError.message, logger.correlationId)
+            };
+        }
+
+        logger.info("Password changed successfully", { action: "changePassword" });
+        return { success: true };
+
+    } catch (error) {
+        if (error instanceof Error && error.name === "ZodError") {
+            const zodError = error as any;
+            const firstIssue = zodError.issues?.[0];
+            const message = firstIssue?.message || "Please check your input.";
+
+            logger.warn("Validation failed in changePassword", { action: "changePassword" });
+            return {
+                success: false,
+                error: createSafeError(message, logger.correlationId),
+            };
+        }
+
+        logger.error("Unexpected error in changePassword", error as Error, { action: "changePassword" });
+        return {
+            success: false,
+            error: createSafeError("An unexpected error occurred", logger.correlationId)
+        };
+    }
 }

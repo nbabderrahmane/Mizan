@@ -6,6 +6,11 @@ export const createWorkspaceSchema = z.object({
         .min(1, "Workspace name is required")
         .max(100, "Workspace name is too long")
         .trim(),
+    currency: z
+        .string()
+        .min(3, "Currency code is required")
+        .max(3, "Currency code must be 3 characters")
+        .trim(),
 });
 
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;

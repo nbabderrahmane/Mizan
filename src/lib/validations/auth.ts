@@ -13,7 +13,8 @@ const passwordSchema = z
 export const signUpSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
     password: passwordSchema,
-    fullName: z.string().min(1, "Full name is required").max(100, "Full name is too long"),
+    firstName: z.string().min(1, "First name is required").max(50, "First name is too long"),
+    lastName: z.string().min(1, "Last name is required").max(50, "Last name is too long"),
 });
 
 export const signInSchema = z.object({

@@ -132,18 +132,9 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
         }
     }
 
-    // 7. Pending Payments Count
-    const { count: pendingPaymentsCount } = await supabase
-        .from("budget_payments_due")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending")
-        .eq("workspace_id", workspaceId);
-
-    // 8. Calculate Balances (Account Based)
-    // We calculate balances in NATIVE currency first (per account), then convert FINAL balance to Workspace.
-    // Why? Because transactions are in account currency.
+    // 7. Calculate Balances (Account Based)
     let totalBalance = 0;
-    const accountBalances = new Map<string, number>(); // AccountID -> Native Balance
+    const accountBalances = new Map<string, number>();
 
     if (accounts) {
         accounts.forEach(acc => {
@@ -156,7 +147,6 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
         .select("account_id, type, base_amount, date, category:categories(name)")
         .eq("workspace_id", workspaceId);
 
-    // Map Account ID to Currency for easy lookup during TX loop
     const accountCurrencyMap = new Map<string, string>();
     accounts?.forEach(a => accountCurrencyMap.set(a.id, a.base_currency || "USD"));
 
@@ -167,7 +157,6 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
         });
     }
 
-    // Sum converted balances
     if (accounts) {
         accounts.forEach(acc => {
             const nativeBalance = accountBalances.get(acc.id) || 0;
@@ -176,13 +165,12 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
         });
     }
 
-    // 9. Monthly Stats (Income/Expenses)
-    // Must convert each TX individually
+    // 8. Monthly Stats (Income/Expenses)
     const now = new Date();
-    const currentMonth = now.toISOString().slice(0, 7); // YYYY-MM
+    const currentMonth = now.toISOString().slice(0, 7);
     let monthlyIncome = 0;
     let monthlyExpenses = 0;
-    const categoryMap = new Map<string, number>(); // Name -> Converted Amount
+    const categoryMap = new Map<string, number>();
 
     if (allTx) {
         allTx.forEach(tx => {
@@ -194,8 +182,7 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
                     monthlyIncome += convert(Number(tx.base_amount), currency);
                 } else if (tx.type === 'expense') {
                     const amount = Math.abs(Number(tx.base_amount));
-                    const converted = convert(amount, currency); // Convert!
-
+                    const converted = convert(amount, currency);
                     monthlyExpenses += converted;
                     const catName = (tx.category as any)?.name || "Uncategorized";
                     categoryMap.set(catName, (categoryMap.get(catName) || 0) + converted);
@@ -209,16 +196,97 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
         value,
         color: `hsl(var(--chart-${(index % 5) + 1}))`,
     }));
-
     expensesByCategory.sort((a, b) => b.value - a.value);
 
-    // Fetch Pending Payments
-    const { data: pendingPayments } = await supabase
-        .from("budget_payments_due")
-        .select("*, budget:budgets(name, currency)")
-        .eq("status", "pending")
+    // 9. Pending Payments: Calculate Plan & Spend budgets that are due
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { data: dueBudgets } = await supabase
+        .from("budgets")
+        .select(`
+            id, 
+            name, 
+            currency, 
+            subcategory_id,
+            subcategory:subcategories(name),
+            plan_config:budget_plan_configs(target_amount, due_date)
+        `)
         .eq("workspace_id", workspaceId)
-        .order("due_date", { ascending: true });
+        .eq("type", "PLAN_SPEND")
+        .eq("status", "active");
+
+    // Get reserved amounts for these budgets
+    const { data: ledgerSums } = await supabase
+        .from("budget_ledger")
+        .select("budget_id, type, amount")
+        .eq("workspace_id", workspaceId);
+
+    const budgetReservedMap = new Map<string, number>();
+    ledgerSums?.forEach(entry => {
+        const current = budgetReservedMap.get(entry.budget_id) || 0;
+        if (entry.type === 'fund' || entry.type === 'adjust') {
+            budgetReservedMap.set(entry.budget_id, current + Number(entry.amount));
+        } else {
+            budgetReservedMap.set(entry.budget_id, current - Number(entry.amount));
+        }
+    });
+
+    // Get expense transactions to check which budgets have been paid
+    const { data: expenseTransactions } = await supabase
+        .from("transactions")
+        .select("subcategory_id, date, base_amount")
+        .eq("workspace_id", workspaceId)
+        .eq("type", "expense");
+
+    // Map subcategory_id to transactions (to detect paid budgets)
+    const paidSubcategories = new Set<string>();
+    dueBudgets?.forEach(budget => {
+        const rawConfig = (budget as any).plan_config;
+        const config = Array.isArray(rawConfig) ? rawConfig[0] : rawConfig;
+        if (!config || !config.due_date) return;
+
+        // Check if there's an expense transaction for this subcategory on/after due date
+        const hasPaidTransaction = expenseTransactions?.some(tx =>
+            tx.subcategory_id === budget.subcategory_id &&
+            tx.date >= config.due_date
+        );
+
+        if (hasPaidTransaction) {
+            paidSubcategories.add(budget.subcategory_id);
+        }
+    });
+
+    // Filter budgets that are due (due_date <= today), have reserved funds, and NOT already paid
+    const pendingPayments: any[] = [];
+    dueBudgets?.forEach(budget => {
+        const rawConfig = (budget as any).plan_config;
+        const config = Array.isArray(rawConfig) ? rawConfig[0] : rawConfig;
+        if (!config || !config.due_date) return;
+
+        // Check if due date has passed or is today AND not already paid
+        if (config.due_date <= today && !paidSubcategories.has(budget.subcategory_id)) {
+            const reserved = budgetReservedMap.get(budget.id) || 0;
+            if (reserved > 0) {
+                pendingPayments.push({
+                    id: budget.id,
+                    budget_id: budget.id,
+                    due_date: config.due_date,
+                    amount_expected: config.target_amount,
+                    amount_reserved: reserved,
+                    status: "pending",
+                    budget: {
+                        id: budget.id,
+                        name: budget.name || (budget.subcategory as any)?.name || "Unnamed",
+                        currency: budget.currency,
+                        subcategory_id: budget.subcategory_id
+                    }
+                });
+            }
+        }
+    });
+
+    // Sort by due date ascending
+    pendingPayments.sort((a, b) => a.due_date.localeCompare(b.due_date));
 
     return {
         hasAccounts,
@@ -232,8 +300,8 @@ export async function getDashboardStats(workspaceId: string): Promise<DashboardS
         monthlyExpenses,
         reservedTotal,
         dueThisMonth,
-        pendingPaymentsCount: pendingPaymentsCount || 0,
-        pendingPayments: pendingPayments || [],
+        pendingPaymentsCount: pendingPayments.length,
+        pendingPayments,
     };
 }
 

@@ -30,12 +30,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WorkspaceSwitcher, WorkspaceItem } from "./workspace-switcher";
 import { signOut } from "@/app/auth/actions";
+import { NotificationBell } from "./notification-bell";
 
 interface AppShellProps {
     children: React.ReactNode;
     workspaces: WorkspaceItem[];
     currentWorkspaceId: string;
     userEmail?: string;
+    isSupportAdmin?: boolean;
 }
 
 const navItems = [
@@ -44,6 +46,7 @@ const navItems = [
     { href: "categories", label: "Categories", icon: Tags },
     { href: "transactions", label: "Transactions", icon: Receipt },
     { href: "budgets", label: "Budgets", icon: PiggyBank },
+    { href: "reports", label: "Reports", icon: LineChart },
     { href: "members", label: "Members", icon: Users },
 ];
 
@@ -52,6 +55,7 @@ export function AppShell({
     workspaces,
     currentWorkspaceId,
     userEmail,
+    isSupportAdmin,
 }: AppShellProps) {
     const pathname = usePathname();
 
@@ -100,13 +104,7 @@ export function AppShell({
 
                     {/* Bottom Links */}
                     <div className="p-4 border-t space-y-1">
-                        <Link
-                            href="/inbox"
-                            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                            <Bell className="h-4 w-4" />
-                            Notifications
-                        </Link>
+                        <NotificationBell />
 
                         {/* Settings dropdown */}
                         <DropdownMenu>
@@ -126,7 +124,7 @@ export function AppShell({
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                    <Link href={`/w/${currentWorkspaceId}/settings/invite`}>
+                                    <Link href={`/w/${currentWorkspaceId}/members`}>
                                         <UserPlus className="mr-2 h-4 w-4" />
                                         Invite Contributor
                                     </Link>
@@ -144,6 +142,17 @@ export function AppShell({
                                         Edit Workspace
                                     </Link>
                                 </DropdownMenuItem>
+                                {isSupportAdmin && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem asChild className="text-primary hover:text-primary focus:text-primary">
+                                            <Link href="/admin">
+                                                <Lock className="mr-2 h-4 w-4" />
+                                                Support Admin
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
 

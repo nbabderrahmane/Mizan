@@ -39,6 +39,7 @@ export async function createWorkspace(
     try {
         const rawData = {
             name: formData.get("name") as string,
+            currency: formData.get("currency") as string,
         };
 
         // Validate input
@@ -95,6 +96,23 @@ export async function createWorkspace(
             };
         }
 
+        // UPDATE CURRENCY
+        // The RPC doesn't accept currency, so we update it immediately after creation.
+        // The user is the OWNER, so RLS allows update.
+        const { error: updateError } = await supabase
+            .from("workspaces")
+            .update({ currency: validatedData.currency })
+            .eq("id", workspaceId);
+
+        if (updateError) {
+            // Non-blocking error, log it but proceed (defaults to USD)
+            logger.error("Failed to set workspace currency", updateError, {
+                action: "createWorkspace",
+                workspaceId,
+                currency: validatedData.currency
+            });
+        }
+
         // Fetch the created workspace
         const { data: workspace, error: fetchError } = await supabase
             .from("workspaces")
@@ -129,7 +147,7 @@ export async function createWorkspace(
             p_action: "create",
             p_entity_type: "workspace",
             p_entity_id: workspace.id,
-            p_payload_public: { name: workspace.name },
+            p_payload_public: { name: workspace.name, currency: validatedData.currency },
         });
 
         revalidatePath("/", "layout");
@@ -164,6 +182,11 @@ export async function createWorkspace(
 /**
  * List all workspaces the current user is a member of.
  */
+import { getWorkspacesData } from "@/lib/data/workspace";
+
+/**
+ * List all workspaces the current user is a member of.
+ */
 export async function listWorkspacesForUser(): Promise<
     WorkspaceResult<Workspace[]>
 > {
@@ -192,63 +215,9 @@ export async function listWorkspacesForUser(): Promise<
             };
         }
 
-        // Get workspaces where user is a member
-        const { data: memberships, error: memberError } = await supabase
-            .from("workspace_members")
-            .select("workspace_id")
-            .eq("user_id", user.id);
+        // Use data layer
+        return await getWorkspacesData(supabase, user.id);
 
-        if (memberError) {
-            logger.error("Failed to fetch memberships", memberError, {
-                action: "listWorkspacesForUser",
-                userId: user.id,
-            });
-            return {
-                success: false,
-                error: createSafeError(
-                    "Failed to fetch workspaces.",
-                    logger.correlationId
-                ),
-            };
-        }
-
-        if (!memberships || memberships.length === 0) {
-            logger.debug("User has no workspaces", {
-                action: "listWorkspacesForUser",
-                userId: user.id,
-            });
-            return { success: true, data: [] };
-        }
-
-        const workspaceIds = memberships.map((m) => m.workspace_id);
-
-        // Get workspace details
-        const { data: workspaces, error: workspaceError } = await supabase
-            .from("workspaces")
-            .select("*")
-            .in("id", workspaceIds);
-
-        if (workspaceError) {
-            logger.error("Failed to fetch workspaces", workspaceError, {
-                action: "listWorkspacesForUser",
-                userId: user.id,
-            });
-            return {
-                success: false,
-                error: createSafeError(
-                    "Failed to fetch workspaces.",
-                    logger.correlationId
-                ),
-            };
-        }
-
-        logger.info("Fetched workspaces successfully", {
-            action: "listWorkspacesForUser",
-            userId: user.id,
-            count: workspaces?.length || 0,
-        });
-
-        return { success: true, data: workspaces || [] };
     } catch (error) {
         logger.error("Unexpected error in listWorkspacesForUser", error as Error, {
             action: "listWorkspacesForUser",
@@ -614,6 +583,9 @@ export type MemberProfile = {
     user_id: string;
     first_name: string | null;
     last_name: string | null;
+    email: string;
+    role: "OWNER" | "MANAGER" | "CONTRIBUTOR" | "VIEWER";
+    joined_at: string;
 };
 
 export async function listWorkspaceMembers(
@@ -629,10 +601,10 @@ export async function listWorkspaceMembers(
     const { data: member } = await supabase.from("workspace_members").select("role").eq("workspace_id", workspaceId).eq("user_id", user.id).single();
     if (!member) return { success: false, error: { message: "Access denied", correlationId: "" } };
 
-    // Step 1: Fetch member user_ids
+    // Step 1: Fetch members
     const { data: membersData, error: membersError } = await supabase
         .from("workspace_members")
-        .select("user_id")
+        .select("user_id, role, joined_at")
         .eq("workspace_id", workspaceId);
 
     if (membersError) {
@@ -649,7 +621,7 @@ export async function listWorkspaceMembers(
     // Step 2: Fetch profiles for those user_ids
     const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, full_name, email")
         .in("id", userIds);
 
     if (profilesError) {
@@ -664,11 +636,153 @@ export async function listWorkspaceMembers(
         const profile = profilesMap.get(m.user_id);
         return {
             user_id: m.user_id,
-            first_name: profile?.first_name || null,
-            last_name: profile?.last_name || null,
+            first_name: profile?.first_name || (profile?.full_name ? profile.full_name.split(' ')[0] : null),
+            last_name: profile?.last_name || (profile?.full_name ? profile.full_name.split(' ').slice(1).join(' ') : null),
+            email: profile?.email || "",
+            role: m.role as MemberProfile["role"],
+            joined_at: m.joined_at,
         };
     });
 
-    console.log("listWorkspaceMembers success:", members.length, "members");
     return { success: true, data: members };
+}
+
+
+/**
+ * Get the role of a member in a workspace.
+ */
+export async function getMemberRole(
+    workspaceId: string,
+    userId: string
+): Promise<WorkspaceResult<WorkspaceMember["role"]>> {
+    const logger = createLogger();
+    try {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+            .from("workspace_members")
+            .select("role")
+            .eq("workspace_id", workspaceId)
+            .eq("user_id", userId)
+            .single();
+
+        if (error) throw error;
+        return { success: true, data: data.role as WorkspaceMember["role"] };
+    } catch (error) {
+        logger.error("Error getting member role", error as Error, {
+            action: "getMemberRole",
+            workspaceId,
+            userId,
+        });
+        return {
+            success: false,
+            error: createSafeError(
+                "Failed to get member role",
+                logger.correlationId
+            ),
+        };
+    }
+}
+
+/**
+ * Update a member's role (OWNER only).
+ */
+export async function updateMemberRole(
+    workspaceId: string,
+    targetUserId: string,
+    newRole: "OWNER" | "MANAGER" | "CONTRIBUTOR" | "VIEWER"
+): Promise<WorkspaceResult> {
+    const logger = createLogger();
+
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: createSafeError("Not authenticated", logger.correlationId) };
+
+        // Permission check: Only OWNER can change roles
+        const { data: currentUserMember } = await supabase
+            .from("workspace_members")
+            .select("role")
+            .eq("workspace_id", workspaceId)
+            .eq("user_id", user.id)
+            .single();
+
+        if (!currentUserMember || currentUserMember.role !== "OWNER") {
+            return { success: false, error: createSafeError("Only the workspace owner can change member roles.", logger.correlationId) };
+        }
+
+        // Don't allow changing one's own role
+        if (user.id === targetUserId) {
+            return { success: false, error: createSafeError("You cannot change your own role.", logger.correlationId) };
+        }
+
+        const { error } = await supabase
+            .from("workspace_members")
+            .update({ role: newRole })
+            .eq("workspace_id", workspaceId)
+            .eq("user_id", targetUserId);
+
+        if (error) throw error;
+
+        revalidatePath(`/w/${workspaceId}/settings/workspace`);
+        revalidatePath(`/w/${workspaceId}/members`);
+        return { success: true };
+
+    } catch (error) {
+        logger.error("Error updating member role", error as Error, { action: "updateMemberRole" });
+        return { success: false, error: createSafeError("Failed to update role", logger.correlationId) };
+    }
+}
+
+/**
+ * Remove a member from workspace.
+ */
+export async function removeMember(
+    workspaceId: string,
+    targetUserId: string
+): Promise<WorkspaceResult> {
+    const logger = createLogger();
+
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: createSafeError("Not authenticated", logger.correlationId) };
+
+        // Permission check: Only OWNER or the user themselves (to leave)
+        const { data: currentUserMember } = await supabase
+            .from("workspace_members")
+            .select("role")
+            .eq("workspace_id", workspaceId)
+            .eq("user_id", user.id)
+            .single();
+
+        if (!currentUserMember) return { success: false, error: createSafeError("Permission denied", logger.correlationId) };
+
+        const isRemovingSelf = user.id === targetUserId;
+        const isOwner = currentUserMember.role === "OWNER";
+
+        if (!isRemovingSelf && !isOwner) {
+            return { success: false, error: createSafeError("Only the workspace owner can remove members.", logger.correlationId) };
+        }
+
+        if (isRemovingSelf && isOwner) {
+            return { success: false, error: createSafeError("As owner, you must delete the workspace or transfer ownership before leaving.", logger.correlationId) };
+        }
+
+        const { error } = await supabase
+            .from("workspace_members")
+            .delete()
+            .eq("workspace_id", workspaceId)
+            .eq("user_id", targetUserId);
+
+        if (error) throw error;
+
+        revalidatePath(`/w/${workspaceId}/settings/workspace`);
+        revalidatePath(`/w/${workspaceId}/members`);
+        revalidatePath("/", "layout");
+        return { success: true };
+
+    } catch (error) {
+        logger.error("Error removing member", error as Error, { action: "removeMember" });
+        return { success: false, error: createSafeError("Failed to remove member", logger.correlationId) };
+    }
 }

@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { getWorkspace, getUserWorkspaceRole } from "@/lib/actions/workspace";
 import { SettingsPageClient } from "./settings-client";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 interface PageProps {
     params: Promise<{ workspaceId: string }>;
@@ -33,6 +33,7 @@ export default async function SettingsPage({ params }: PageProps) {
             workspaceName={workspaceResult.data.name}
             currency={workspaceResult.data.currency}
             isOwner={isOwner}
+            currentUserId={user.id}
         />
     );
 }

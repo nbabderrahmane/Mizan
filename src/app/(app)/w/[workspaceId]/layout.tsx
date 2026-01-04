@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { listWorkspacesForUser } from "@/lib/actions/workspace";
+import { getWorkspacesData } from "@/lib/data/workspace";
 import { AppShell } from "@/components/layout/app-shell";
 
 export default async function AppLayout({
@@ -21,14 +21,18 @@ export default async function AppLayout({
         redirect("/auth/sign-in");
     }
 
-    // Get user's workspaces
-    const workspacesResult = await listWorkspacesForUser();
+    // Get user's workspaces and admin status in parallel
+    const [workspacesResult, adminResult] = await Promise.all([
+        getWorkspacesData(supabase, user.id),
+        supabase.from("app_admins").select("role").eq("user_id", user.id).single()
+    ]);
 
     if (!workspacesResult.success) {
         // No console.error here as per instruction
     }
 
     const workspaces = workspacesResult.success ? workspacesResult.data || [] : [];
+    const isSupportAdmin = !!adminResult.data;
 
     // Get current workspace ID from params
     const resolvedParams = await params;
@@ -51,6 +55,7 @@ export default async function AppLayout({
             workspaces={workspaces.map((w) => ({ id: w.id, name: w.name }))}
             currentWorkspaceId={currentWorkspaceId}
             userEmail={user.email}
+            isSupportAdmin={isSupportAdmin}
         >
             {children}
         </AppShell>

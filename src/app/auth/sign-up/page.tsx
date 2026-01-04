@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/card";
 import { signUp } from "../actions";
 
-export default function SignUpPage() {
+function SignUpForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get("returnTo");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +30,7 @@ export default function SignUpPage() {
         const result = await signUp(formData);
 
         if (result.success) {
-            router.push("/");
+            router.push(returnTo || "/");
         } else {
             setError(result.error?.message || "An error occurred");
         }
@@ -37,72 +39,100 @@ export default function SignUpPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl">Create your account</CardTitle>
-                    <CardDescription>
-                        Get started with Mizan to manage your shared budget
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form action={handleSubmit} className="space-y-4">
-                        {error && (
-                            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
-                                {error}
-                            </div>
-                        )}
+        <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+                <CardTitle className="text-2xl">Create your account</CardTitle>
+                <CardDescription>
+                    Get started with Mizan to manage your shared budget
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form action={handleSubmit} className="space-y-4">
+                    {error && (
+                        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                            {error}
+                        </div>
+                    )}
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="fullName">Full Name</Label>
+                            <Label htmlFor="firstName">First Name</Label>
                             <Input
-                                id="fullName"
-                                name="fullName"
+                                id="firstName"
+                                name="firstName"
                                 type="text"
-                                placeholder="John Doe"
+                                placeholder="John"
                                 required
                                 disabled={isLoading}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="lastName">Last Name</Label>
                             <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="you@example.com"
+                                id="lastName"
+                                name="lastName"
+                                type="text"
+                                placeholder="Doe"
                                 required
                                 disabled={isLoading}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input
-                                id="password"
-                                name="password"
-                                type="password"
-                                placeholder="••••••••"
-                                required
-                                minLength={8}
-                                disabled={isLoading}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                At least 8 characters with one letter and one number
-                            </p>
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? "Creating account..." : "Create account"}
-                        </Button>
-                    </form>
-                </CardContent>
-                <CardFooter className="flex justify-center">
-                    <p className="text-sm text-muted-foreground">
-                        Already have an account?{" "}
-                        <Link href="/auth/sign-in" className="text-primary hover:underline">
-                            Sign in
-                        </Link>
-                    </p>
-                </CardFooter>
-            </Card>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            required
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="••••••••"
+                            required
+                            minLength={8}
+                            disabled={isLoading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            At least 8 characters with one letter and one number
+                        </p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? "Creating account..." : "Create account"}
+                    </Button>
+                </form>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+                <p className="text-sm text-muted-foreground">
+                    Already have an account?{" "}
+                    <Link href={`/auth/sign-in${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}`} className="text-primary hover:underline">
+                        Sign in
+                    </Link>
+                </p>
+            </CardFooter>
+        </Card>
+    );
+}
+
+export default function SignUpPage() {
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <Suspense fallback={
+                <Card className="w-full max-w-md">
+                    <CardHeader className="text-center">
+                        <CardTitle className="text-2xl">Create your account</CardTitle>
+                        <CardDescription>Loading...</CardDescription>
+                    </CardHeader>
+                </Card>
+            }>
+                <SignUpForm />
+            </Suspense>
         </div>
     );
 }

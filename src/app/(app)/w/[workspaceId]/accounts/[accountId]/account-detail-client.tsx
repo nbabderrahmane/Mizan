@@ -10,18 +10,18 @@ import { TransactionList } from "@/components/transactions/transaction-list";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { EditTransactionSheet } from "@/components/transactions/edit-transaction-sheet";
 import { CreateTransactionDialog } from "@/components/transactions/create-transaction-dialog";
-import type { AccountWithBalance } from "@/lib/actions/account";
+import type { Account } from "@/lib/actions/account";
 import type { Transaction } from "@/lib/actions/transaction";
 import type { MemberProfile } from "@/lib/actions/workspace";
 import type { CategoryWithSubcategories } from "@/lib/actions/category";
 
 interface AccountDetailClientProps {
     workspaceId: string;
-    account: AccountWithBalance;
+    account: Account;
     transactions: Transaction[];
     members: MemberProfile[];
     categories: CategoryWithSubcategories[];
-    accounts: AccountWithBalance[];
+    accounts: Account[];
 }
 
 export function AccountDetailClient({
@@ -42,6 +42,10 @@ export function AccountDetailClient({
     const totalExpenses = transactions
         .filter(t => t.type === "expense" || (t.type === "transfer" && t.base_amount < 0))
         .reduce((sum, t) => sum + Math.abs(t.base_amount), 0);
+
+    // Calculate current balance
+    // Use account.available if provided (calculated by server), fallback to opening_balance
+    const currentBalance = (account as any).available ?? (account.opening_balance || 0);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("en-US", {
@@ -82,7 +86,7 @@ export function AccountDetailClient({
                         <Wallet className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(account.balance)}</div>
+                        <div className="text-2xl font-bold">{formatCurrency(currentBalance)}</div>
                     </CardContent>
                 </Card>
                 <Card>

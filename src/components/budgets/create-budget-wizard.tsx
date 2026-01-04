@@ -22,12 +22,13 @@ interface CreateBudgetWizardProps {
     workspaceId: string;
     categories: CategoryWithSubcategories[];
     accounts?: any[];
+    workspaceCurrency?: string;
     onSuccess: (newBudget: any) => void;
 }
 
 const CURRENCIES = ["USD", "EUR", "GBP", "MAD", "AED"];
 
-export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, accounts = [], onSuccess }: CreateBudgetWizardProps) {
+export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, accounts = [], workspaceCurrency = "USD", onSuccess }: CreateBudgetWizardProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +37,10 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
     const [subcategoryId, setSubcategoryId] = useState("");
     const [amount, setAmount] = useState("");
     const [type, setType] = useState<"PAYG" | "PLAN_SPEND">("PAYG");
-    const [currency, setCurrency] = useState("USD");
+    const [currency, setCurrency] = useState(workspaceCurrency);
+
+    // PAYG Recurring
+    const [isRecurring, setIsRecurring] = useState(false);
 
     // Plan & Spend Specifics
     const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
@@ -78,6 +82,7 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
             currency,
             type,
             monthlyCap: type === "PAYG" ? parseFloat(amount) : undefined,
+            isRecurring: type === "PAYG" ? isRecurring : undefined,
             targetAmount: type === "PLAN_SPEND" ? parseFloat(amount) : undefined,
             dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
             recurrence,
@@ -106,7 +111,8 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
         setSubcategoryId("");
         setAmount("");
         setType("PAYG");
-        setCurrency("USD");
+        setCurrency(workspaceCurrency);
+        setIsRecurring(false);
         setDueDate(undefined);
         setRecurrence("None");
         setStartPolicy("start_this_month");
@@ -225,6 +231,23 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
                         </RadioGroup>
                     </div>
 
+                    {/* PAYG Monthly Recurrence Option */}
+                    {type === "PAYG" && (
+                        <div className="flex items-center space-x-2 p-4 rounded-xl border bg-muted/30 animate-in fade-in slide-in-from-top-2">
+                            <Checkbox
+                                id="recurring"
+                                checked={isRecurring}
+                                onCheckedChange={(checked) => setIsRecurring(checked === true)}
+                            />
+                            <Label htmlFor="recurring" className="text-sm cursor-pointer">
+                                Recurring Monthly
+                            </Label>
+                            <span className="text-xs text-muted-foreground ml-auto">
+                                Resets at the start of each month
+                            </span>
+                        </div>
+                    )}
+
                     {/* Conditional Planning Specifics */}
                     {type === "PLAN_SPEND" && (
                         <div className="space-y-4 p-4 rounded-xl border bg-muted/30 animate-in fade-in slide-in-from-top-2">
@@ -317,7 +340,7 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
                                             <SelectContent>
                                                 {accounts.map(acc => (
                                                     <SelectItem key={acc.id} value={acc.id}>
-                                                        {acc.name} ({new Intl.NumberFormat('en-US', { style: 'currency', currency: acc.base_currency }).format(acc.available ?? acc.balance)})
+                                                        {acc.name} ({new Intl.NumberFormat('en-US', { style: 'currency', currency: acc.base_currency }).format(acc.available ?? acc.opening_balance ?? 0)})
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>

@@ -52,6 +52,7 @@ export async function createBudget(
             const { error: cError } = await supabase.from("budget_payg_configs").insert({
                 budget_id: budget.id,
                 monthly_cap: validated.monthlyCap,
+                is_recurring: validated.isRecurring ?? false,
                 workspace_id: workspaceId // Add workspace_id for robust RLS
             });
             if (cError) {
@@ -163,6 +164,70 @@ export async function createBudget(
     }
 }
 
+export async function updateBudget(
+    workspaceId: string,
+    budgetId: string,
+    data: { name?: string; monthlyCap?: number; targetAmount?: number; isRecurring?: boolean }
+): Promise<BudgetResult> {
+    const logger = createLogger();
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: false, error: createSafeError("Unauthorized", logger.correlationId) };
+
+        // Get budget to determine type
+        const { data: budget, error: fetchError } = await supabase
+            .from("budgets")
+            .select("type")
+            .eq("id", budgetId)
+            .eq("workspace_id", workspaceId)
+            .single();
+
+        if (fetchError || !budget) {
+            return { success: false, error: createSafeError("Budget not found", logger.correlationId) };
+        }
+
+        // Update budget name if provided
+        if (data.name !== undefined) {
+            const { error: nameError } = await supabase
+                .from("budgets")
+                .update({ name: data.name })
+                .eq("id", budgetId);
+            if (nameError) throw nameError;
+        }
+
+        // Update config based on type
+        if (budget.type === "PAYG") {
+            const updateData: any = {};
+            if (data.monthlyCap !== undefined) updateData.monthly_cap = data.monthlyCap;
+            if (data.isRecurring !== undefined) updateData.is_recurring = data.isRecurring;
+
+            if (Object.keys(updateData).length > 0) {
+                const { error: configError } = await supabase
+                    .from("budget_payg_configs")
+                    .update(updateData)
+                    .eq("budget_id", budgetId);
+                if (configError) throw configError;
+            }
+        } else if (budget.type === "PLAN_SPEND") {
+            if (data.targetAmount !== undefined) {
+                const { error: configError } = await supabase
+                    .from("budget_plan_configs")
+                    .update({ target_amount: data.targetAmount })
+                    .eq("budget_id", budgetId);
+                if (configError) throw configError;
+            }
+        }
+
+        revalidatePath(`/w/${workspaceId}/budgets`);
+        revalidatePath(`/w/${workspaceId}/dashboard`);
+        return { success: true };
+    } catch (error: any) {
+        logger.error("Error updating budget", error);
+        return { success: false, error: createSafeError(error?.message || "Failed to update budget", logger.correlationId) };
+    }
+}
+
 export async function listBudgets(workspaceId: string): Promise<BudgetResult<BudgetWithConfigs[]>> {
     const logger = createLogger();
     try {
@@ -212,8 +277,32 @@ export async function listBudgets(workspaceId: string): Promise<BudgetResult<Bud
             }
         });
 
+        // Fetch spending (expense transactions) by subcategory for this month
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+        const startOfMonth = `${currentMonth}-01`;
+        const endOfMonth = new Date(new Date(startOfMonth).getFullYear(), new Date(startOfMonth).getMonth() + 1, 0).toISOString().split('T')[0];
+
+        const { data: transactions, error: txError } = await supabase
+            .from("transactions")
+            .select("subcategory_id, base_amount, type")
+            .eq("workspace_id", workspaceId)
+            .gte("date", startOfMonth)
+            .lte("date", endOfMonth);
+
+        if (txError) {
+            // Log error but continue - budget display will show 0 spending
+        }
+
+        // Sum spending by subcategory (expense transactions only)
+        const spendingMap = new Map<string, number>();
+        transactions?.forEach(tx => {
+            if (tx.subcategory_id && tx.type === "expense") {
+                const current = spendingMap.get(tx.subcategory_id) || 0;
+                spendingMap.set(tx.subcategory_id, current + Math.abs(Number(tx.base_amount)));
+            }
+        });
+
         const budgetsWithBalances = (data as any[]).map(b => {
-            // Handle join returning array or object
             const payg = Array.isArray(b.payg_config) ? b.payg_config[0] : b.payg_config;
             const plan = Array.isArray(b.plan_config) ? b.plan_config[0] : b.plan_config;
 
@@ -221,7 +310,8 @@ export async function listBudgets(workspaceId: string): Promise<BudgetResult<Bud
                 ...b,
                 payg_config: payg,
                 plan_config: plan,
-                current_reserved: reservedMap.get(b.id) || 0
+                current_reserved: reservedMap.get(b.id) || 0,
+                spending_amount: spendingMap.get(b.subcategory_id) || 0
             };
         });
 
