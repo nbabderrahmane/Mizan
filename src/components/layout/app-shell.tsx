@@ -200,55 +200,58 @@ export function AppShell({
 
             {/* Mobile Bottom Nav */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t">
-                <div className="flex justify-around items-center h-16 px-2">
-                    {navItems.slice(0, 2).map((item) => (
-                        <Link
-                            key={item.href}
-                            href={`/w/${currentWorkspaceId}/${item.href}`}
-                            className={cn(
-                                "flex flex-col items-center gap-1 px-2 py-2 text-xs",
-                                isActive(item.href)
-                                    ? "text-primary"
-                                    : "text-muted-foreground"
-                            )}
-                        >
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
+                <div className="flex items-center justify-around h-16 relative">
+                    {/* Dashboard */}
+                    <Link
+                        href={`/w/${currentWorkspaceId}/dashboard`}
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-2 py-2 text-xs",
+                            isActive("dashboard") ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <LayoutDashboard className="h-5 w-5" />
+                        <span>{t("dashboard")}</span>
+                    </Link>
 
-                    {/* Central Add Button for Mobile */}
-                    <div className="flex items-center justify-center -mt-6">
+                    {/* Transactions */}
+                    <Link
+                        href={`/w/${currentWorkspaceId}/transactions`}
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-2 py-2 text-xs",
+                            isActive("transactions") ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <Receipt className="h-5 w-5" />
+                        <span>{t("transactions")}</span>
+                    </Link>
+
+                    {/* Central Add Button */}
+                    <div className="flex items-center justify-center -mt-8 mx-2">
                         <CreateTransactionDialog
                             workspaceId={currentWorkspaceId}
                             accounts={accounts}
                             categories={categories}
                             trigger={
-                                <Button size="icon" className="h-12 w-12 rounded-full shadow-lg border-4 border-background">
-                                    <Plus className="h-6 w-6" />
+                                <Button size="icon" className="h-14 w-14 rounded-full shadow-xl border-4 border-background bg-primary text-primary-foreground hover:scale-105 transition-transform">
+                                    <Plus className="h-8 w-8" />
                                 </Button>
                             }
                         />
                     </div>
 
+                    {/* Accounts */}
                     <Link
-                        key={navItems[4].href}
-                        href={`/w/${currentWorkspaceId}/${navItems[4].href}`}
+                        href={`/w/${currentWorkspaceId}/accounts`}
                         className={cn(
                             "flex flex-col items-center gap-1 px-2 py-2 text-xs",
-                            isActive(navItems[4].href)
-                                ? "text-primary"
-                                : "text-muted-foreground"
+                            isActive("accounts") ? "text-primary" : "text-muted-foreground"
                         )}
                     >
-                        {(() => {
-                            const Icon = navItems[4].icon;
-                            return <Icon className="h-5 w-5" />;
-                        })()}
-                        <span>{navItems[4].label}</span>
+                        <Wallet className="h-5 w-5" />
+                        <span>{t("accounts")}</span>
                     </Link>
 
-                    {/* More Menu for Mobile */}
+                    {/* Actions Menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button className="flex flex-col items-center gap-1 px-2 py-2 text-xs text-muted-foreground">
@@ -256,7 +259,21 @@ export function AppShell({
                                 <span>{common("actions")}</span>
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuContent align="end" className="w-56 mb-2">
+                            <DropdownMenuLabel className="text-xs text-muted-foreground px-2 py-1.5">{common("actions")}</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/transactions`} className="flex items-center gap-2">
+                                    <Receipt className="h-4 w-4" />
+                                    {t("transactions")}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/budgets`} className="flex items-center gap-2">
+                                    <PiggyBank className="h-4 w-4" />
+                                    {t("budgets")}
+                                </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                                 <Link href={`/w/${currentWorkspaceId}/categories`} className="flex items-center gap-2">
                                     <Tags className="h-4 w-4" />
@@ -282,10 +299,10 @@ export function AppShell({
 
             {/* Mobile Header */}
             <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card fixed top-0 left-0 right-0 z-40">
-                <Link href="/" className="font-bold text-lg">
+                <Link href="/" className="font-bold text-lg flex items-center h-full">
                     Mizan
                 </Link>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center h-full gap-1">
                     <ThemeToggle />
                     <NotificationBell />
                     <DropdownMenu>
