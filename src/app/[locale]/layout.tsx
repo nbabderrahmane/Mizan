@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
 export const metadata: Metadata = {
     title: "Mizan - Shared Budget",
@@ -30,12 +31,19 @@ export default async function RootLayout({
     const dir = locale === "ar" ? "rtl" : "ltr";
 
     return (
-        <html lang={locale} dir={dir}>
+        <html lang={locale} dir={dir} suppressHydrationWarning>
             <body className="antialiased">
-                <NextIntlClientProvider messages={messages} locale={locale}>
-                    {children}
-                </NextIntlClientProvider>
-                <Toaster />
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                >
+                    <NextIntlClientProvider messages={messages} locale={locale}>
+                        {children}
+                    </NextIntlClientProvider>
+                    <Toaster />
+                </ThemeProvider>
             </body>
         </html>
     );

@@ -71,6 +71,7 @@ interface CreateTransactionDialogProps {
     budgets?: BudgetWithConfigs[];
     prefilled?: PrefilledPayment | null;
     onClose?: () => void;
+    trigger?: React.ReactNode;
 }
 
 const CURRENCIES = ["USD", "EUR", "GBP", "MAD", "AED"];
@@ -83,6 +84,7 @@ export function CreateTransactionDialog({
     budgets = [],
     prefilled,
     onClose,
+    trigger,
 }: CreateTransactionDialogProps) {
     const t = useTranslations("Transactions");
     const common = useTranslations("Common");
@@ -227,10 +229,12 @@ export function CreateTransactionDialog({
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button>
-                    <Plus className="me-2 h-4 w-4" />
-                    {t("newTransaction")}
-                </Button>
+                {trigger || (
+                    <Button className="w-full">
+                        <Plus className="me-2 h-4 w-4" />
+                        {t("newTransaction")}
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>

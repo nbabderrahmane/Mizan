@@ -68,6 +68,7 @@ export function AccountsPageClient({
                 onEdit={canManage ? handleEdit : undefined}
                 onReconcile={handleReconcile}
                 onArchive={canManage ? handleArchive : undefined}
+                workspaceId={workspaceId}
             />
 
             {canManage && (

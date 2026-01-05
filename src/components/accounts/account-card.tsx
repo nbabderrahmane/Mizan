@@ -48,16 +48,16 @@ interface AccountCardProps {
     onEdit?: (account: Account) => void;
     onReconcile?: (account: Account) => void;
     onArchive?: (accountId: string) => void;
+    workspaceId: string;
 }
 
-export function AccountCard({ account, onEdit, onReconcile, onArchive }: AccountCardProps) {
+export function AccountCard({ account, onEdit, onReconcile, onArchive, workspaceId }: AccountCardProps) {
     const t = useTranslations("Accounts");
     const common = useTranslations("Common");
     const locale = useLocale();
     const config = (accountTypeConfig as any)[account.type] || accountTypeConfig.bank;
     const Icon = config.icon;
     const pathname = usePathname();
-    const workspaceId = pathname.split('/')[2];
 
     const formatCurrency = (amount: number, currency: string) => {
         return new Intl.NumberFormat(locale, {
@@ -129,9 +129,10 @@ interface AccountListProps {
     onEdit?: (account: Account) => void;
     onReconcile?: (account: Account) => void;
     onArchive?: (accountId: string) => void;
+    workspaceId: string;
 }
 
-export function AccountList({ accounts, onEdit, onReconcile, onArchive }: AccountListProps) {
+export function AccountList({ accounts, onEdit, onReconcile, onArchive, workspaceId }: AccountListProps) {
     const t = useTranslations("Accounts");
 
     if (!accounts.length) {
@@ -151,6 +152,7 @@ export function AccountList({ accounts, onEdit, onReconcile, onArchive }: Accoun
                     onEdit={onEdit}
                     onReconcile={onReconcile}
                     onArchive={onArchive}
+                    workspaceId={workspaceId}
                 />
             ))}
         </div>

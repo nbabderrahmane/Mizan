@@ -50,12 +50,32 @@ export default async function AppLayout({
         redirect(`/w/${workspaces[0].id}/dashboard`);
     }
 
+    // Get accounts and categories for the global transaction button
+    const [accountsResult, categoriesResult] = await Promise.all([
+        supabase.from("accounts").select("id, name, base_currency").eq("workspace_id", currentWorkspaceId).eq("is_archived", false),
+        supabase.from("categories").select(`
+            id, 
+            name, 
+            type,
+            subcategories (
+                id,
+                name
+            )
+        `).eq("workspace_id", currentWorkspaceId)
+    ]);
+
+    const accounts = accountsResult.data || [];
+    const categories = categoriesResult.data || [];
+
     return (
         <AppShell
             workspaces={workspaces.map((w) => ({ id: w.id, name: w.name }))}
             currentWorkspaceId={currentWorkspaceId}
             userEmail={user.email || ""}
             isSupportAdmin={isSupportAdmin}
+            // Pass data for global transaction button
+            accounts={accounts}
+            categories={categories as any}
         >
             {children}
         </AppShell>

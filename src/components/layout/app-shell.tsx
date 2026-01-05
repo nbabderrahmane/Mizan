@@ -17,9 +17,13 @@ import {
     UserPlus,
     Lock,
     Building,
+    Plus,
+    Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { CreateTransactionDialog } from "@/components/transactions/create-transaction-dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -40,6 +44,8 @@ interface AppShellProps {
     currentWorkspaceId: string;
     userEmail?: string;
     isSupportAdmin?: boolean;
+    accounts?: any[];
+    categories?: any[];
 }
 
 export function AppShell({
@@ -48,9 +54,12 @@ export function AppShell({
     currentWorkspaceId,
     userEmail,
     isSupportAdmin,
+    accounts = [],
+    categories = [],
 }: AppShellProps) {
     const pathname = usePathname();
     const t = useTranslations("Navigation");
+    const common = useTranslations("Common");
 
     const navItems = [
         { href: "dashboard", label: t("dashboard"), icon: LayoutDashboard },
@@ -86,6 +95,15 @@ export function AppShell({
                         />
                     </div>
 
+                    {/* Global Add Transaction Button */}
+                    <div className="px-4 py-2">
+                        <CreateTransactionDialog
+                            workspaceId={currentWorkspaceId}
+                            accounts={accounts}
+                            categories={categories}
+                        />
+                    </div>
+
                     {/* Navigation */}
                     <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                         {navItems.map((item) => (
@@ -107,7 +125,10 @@ export function AppShell({
 
                     {/* Bottom Links */}
                     <div className="p-4 border-t space-y-1">
-                        <NotificationBell />
+                        <div className="flex items-center justify-between mb-2">
+                            <NotificationBell />
+                            <ThemeToggle />
+                        </div>
 
                         {/* Settings dropdown */}
                         <DropdownMenu>
@@ -179,13 +200,13 @@ export function AppShell({
 
             {/* Mobile Bottom Nav */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t">
-                <div className="flex justify-around items-center h-16">
-                    {navItems.slice(0, 5).map((item) => (
+                <div className="flex justify-around items-center h-16 px-2">
+                    {navItems.slice(0, 2).map((item) => (
                         <Link
                             key={item.href}
                             href={`/w/${currentWorkspaceId}/${item.href}`}
                             className={cn(
-                                "flex flex-col items-center gap-1 px-3 py-2 text-xs",
+                                "flex flex-col items-center gap-1 px-2 py-2 text-xs",
                                 isActive(item.href)
                                     ? "text-primary"
                                     : "text-muted-foreground"
@@ -195,6 +216,67 @@ export function AppShell({
                             <span>{item.label}</span>
                         </Link>
                     ))}
+
+                    {/* Central Add Button for Mobile */}
+                    <div className="flex items-center justify-center -mt-6">
+                        <CreateTransactionDialog
+                            workspaceId={currentWorkspaceId}
+                            accounts={accounts}
+                            categories={categories}
+                            trigger={
+                                <Button size="icon" className="h-12 w-12 rounded-full shadow-lg border-4 border-background">
+                                    <Plus className="h-6 w-6" />
+                                </Button>
+                            }
+                        />
+                    </div>
+
+                    <Link
+                        key={navItems[4].href}
+                        href={`/w/${currentWorkspaceId}/${navItems[4].href}`}
+                        className={cn(
+                            "flex flex-col items-center gap-1 px-2 py-2 text-xs",
+                            isActive(navItems[4].href)
+                                ? "text-primary"
+                                : "text-muted-foreground"
+                        )}
+                    >
+                        {(() => {
+                            const Icon = navItems[4].icon;
+                            return <Icon className="h-5 w-5" />;
+                        })()}
+                        <span>{navItems[4].label}</span>
+                    </Link>
+
+                    {/* More Menu for Mobile */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex flex-col items-center gap-1 px-2 py-2 text-xs text-muted-foreground">
+                                <Menu className="h-5 w-5" />
+                                <span>{common("actions")}</span>
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/categories`} className="flex items-center gap-2">
+                                    <Tags className="h-4 w-4" />
+                                    {t("categories")}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/reports`} className="flex items-center gap-2">
+                                    <LineChart className="h-4 w-4" />
+                                    {t("reports")}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/members`} className="flex items-center gap-2">
+                                    <Users className="h-4 w-4" />
+                                    {t("members")}
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </nav>
 
@@ -203,17 +285,59 @@ export function AppShell({
                 <Link href="/" className="font-bold text-lg">
                     Mizan
                 </Link>
-                <div className="flex items-center gap-2">
-                    <Link href="/inbox">
-                        <Button variant="ghost" size="icon">
-                            <Bell className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                    <Link href={`/w/${currentWorkspaceId}/settings/workspace`}>
-                        <Button variant="ghost" size="icon">
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                    </Link>
+                <div className="flex items-center gap-1">
+                    <ThemeToggle />
+                    <NotificationBell />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Settings className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>{t("settings")}</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/settings/profile`}>
+                                    <User className="me-2 h-4 w-4" />
+                                    {t("editProfile")}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/settings/password`}>
+                                    <Lock className="me-2 h-4 w-4" />
+                                    {t("changePassword")}
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href={`/w/${currentWorkspaceId}/settings/workspace`}>
+                                    <Building className="me-2 h-4 w-4" />
+                                    {t("editWorkspace")}
+                                </Link>
+                            </DropdownMenuItem>
+                            {isSupportAdmin && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild className="text-primary hover:text-primary focus:text-primary">
+                                        <Link href="/admin">
+                                            <Lock className="me-2 h-4 w-4" />
+                                            {t("supportAdmin")}
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            <DropdownMenuSeparator />
+                            <form action={signOut}>
+                                <button type="submit" className="w-full">
+                                    <DropdownMenuItem className="text-destructive">
+                                        <LogOut className="me-2 h-4 w-4" />
+                                        {t("signout")}
+                                    </DropdownMenuItem>
+                                </button>
+                            </form>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </header>
 
