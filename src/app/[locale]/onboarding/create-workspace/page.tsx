@@ -22,8 +22,12 @@ import {
 } from "@/components/ui/select";
 import { createWorkspace } from "@/lib/actions/workspace";
 import { signOut } from "@/lib/actions/auth";
+import { useTranslations } from "next-intl";
 
 export default function CreateWorkspacePage() {
+    const t = useTranslations("Onboarding");
+    const common = useTranslations("Common");
+    const auth = useTranslations("Auth");
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -38,7 +42,7 @@ export default function CreateWorkspacePage() {
             // Redirect to setup wizard for new workspaces
             router.push(`/w/${result.data.id}/setup`);
         } else {
-            setError(result.error?.message || "Failed to create workspace");
+            setError(result.error?.message || common("error"));
         }
 
         setIsLoading(false);
@@ -48,10 +52,9 @@ export default function CreateWorkspacePage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl">Create your workspace</CardTitle>
+                    <CardTitle className="text-2xl">{t("createYourWorkspace")}</CardTitle>
                     <CardDescription>
-                        A workspace is your shared budget book. You can invite family or
-                        friends to manage finances together.
+                        {t("createNewDesc")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -62,7 +65,7 @@ export default function CreateWorkspacePage() {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="name">Workspace Name</Label>
+                            <Label htmlFor="name">{t("workspaceName")}</Label>
                             <Input
                                 id="name"
                                 name="name"
@@ -74,24 +77,10 @@ export default function CreateWorkspacePage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="currency">Currency</Label>
+                            <Label htmlFor="currency">{common("currency")}</Label>
                             <Select name="currency" defaultValue="USD" disabled={isLoading}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="USD">USD ($)</SelectItem>
-                                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                                    <SelectItem value="MAD">MAD (DH)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="currency">Currency</Label>
-                            <Select name="currency" defaultValue="USD" disabled={isLoading}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select currency" />
+                                    <SelectValue placeholder={common("search")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="USD">USD ($)</SelectItem>
@@ -102,15 +91,15 @@ export default function CreateWorkspacePage() {
                             </Select>
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? "Creating..." : "Create Workspace"}
+                            {isLoading ? common("creating") : t("createWorkspace")}
                         </Button>
                     </form>
 
                     <div className="pt-4 border-t text-center">
                         <form action={signOut}>
                             <Button variant="ghost" size="sm" type="submit">
-                                <LogOut className="h-4 w-4 mr-2" />
-                                Sign out
+                                <LogOut className="h-4 w-4 me-2" />
+                                {auth("signOut")}
                             </Button>
                         </form>
                     </div>

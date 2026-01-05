@@ -76,13 +76,13 @@ export function TransactionList({ workspaceId, transactions, members = [], onEdi
                 <table className="w-full text-sm">
                     <thead className="bg-muted/50 text-muted-foreground font-medium">
                         <tr className="border-b">
-                            <th className="h-10 px-4 text-left font-medium w-[120px]">{t("date")}</th>
-                            <th className="h-10 px-4 text-left font-medium">{t("details")}</th>
-                            <th className="h-10 px-4 text-left font-medium w-[140px]">{t("vendor")}</th>
-                            <th className="h-10 px-4 text-left font-medium">{t("account")}</th>
-                            <th className="h-10 px-4 text-left font-medium w-[140px]">{t("createdBy")}</th>
-                            <th className="h-10 px-4 text-right font-medium">{t("amount")}</th>
-                            <th className="h-10 px-4 text-right font-medium w-[50px]"></th>
+                            <th className="h-10 px-4 text-start font-medium w-[120px]">{t("date")}</th>
+                            <th className="h-10 px-4 text-start font-medium">{t("details")}</th>
+                            <th className="h-10 px-4 text-start font-medium w-[140px]">{t("vendor")}</th>
+                            <th className="h-10 px-4 text-start font-medium">{t("account")}</th>
+                            <th className="h-10 px-4 text-start font-medium w-[140px]">{t("createdBy")}</th>
+                            <th className="h-10 px-4 text-end font-medium">{t("amount")}</th>
+                            <th className="h-10 px-4 text-end font-medium w-[50px]"></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -150,7 +150,7 @@ export function TransactionList({ workspaceId, transactions, members = [], onEdi
                                             <span className="truncate max-w-[120px]">{creatorName}</span>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3 align-top text-right">
+                                    <td className="px-4 py-3 align-top text-end">
                                         <div className={cn(
                                             "font-bold font-mono",
                                             isExpense && "text-rose-600 dark:text-rose-400",
@@ -165,7 +165,7 @@ export function TransactionList({ workspaceId, transactions, members = [], onEdi
                                             </p>
                                         )}
                                     </td>
-                                    <td className="px-4 py-3 align-top text-right">
+                                    <td className="px-4 py-3 align-top text-end">
                                         {!isLocked && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>

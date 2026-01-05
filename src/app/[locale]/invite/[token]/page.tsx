@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
     params: Promise<{ token: string }>;
@@ -11,6 +12,7 @@ interface PageProps {
 
 export default async function InvitePage({ params }: PageProps) {
     const { token } = await params;
+    const t = await getTranslations("Invitations");
     const result = await getInviteByToken(token);
 
     // Check if user is logged in
@@ -26,8 +28,8 @@ export default async function InvitePage({ params }: PageProps) {
                 {!result.success ? (
                     <div className="text-center space-y-6">
                         <div className="space-y-2">
-                            <h1 className="text-2xl font-bold text-destructive">Invalid Invitation</h1>
-                            <p className="text-muted-foreground">{result.error?.message || "This invitation link is no longer valid."}</p>
+                            <h1 className="text-2xl font-bold text-destructive">{t("invalid")}</h1>
+                            <p className="text-muted-foreground">{result.error?.message || t("invalidDesc")}</p>
                         </div>
                         <Button asChild variant="outline" className="w-full">
                             <Link href="/">
@@ -39,18 +41,17 @@ export default async function InvitePage({ params }: PageProps) {
                 ) : !user ? (
                     <div className="text-center space-y-6">
                         <div className="space-y-2">
-                            <h1 className="text-2xl font-bold">Sign in to Join</h1>
+                            <h1 className="text-2xl font-bold">{t("signInToJoin")}</h1>
                             <p className="text-muted-foreground">
-                                You've been invited to join <strong>{result.data?.workspace_name}</strong>.
-                                Please sign in or create an account to accept this invitation.
+                                {t("signInToJoinDesc")}
                             </p>
                         </div>
                         <div className="flex flex-col gap-3">
                             <Button asChild className="w-full">
-                                <Link href={`/auth/sign-in?returnTo=/invite/${token}`}>Sign In</Link>
+                                <Link href={`/auth/sign-in?returnTo=/invite/${token}`}>{t("signIn")}</Link>
                             </Button>
                             <Button asChild variant="outline" className="w-full">
-                                <Link href={`/auth/sign-up?returnTo=/invite/${token}`}>Create Account</Link>
+                                <Link href={`/auth/sign-up?returnTo=/invite/${token}`}>{t("createAccount")}</Link>
                             </Button>
                         </div>
                     </div>

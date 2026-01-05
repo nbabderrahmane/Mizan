@@ -57,7 +57,7 @@ export function WorkspaceSwitcher({
                     <span className="truncate">
                         {currentWorkspace?.name || t("selectWorkspace")}
                     </span>
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
@@ -70,7 +70,7 @@ export function WorkspaceSwitcher({
                         className="cursor-pointer"
                     >
                         <Check
-                            className={`mr-2 h-4 w-4 ${currentWorkspaceId === workspace.id
+                            className={`me-2 h-4 w-4 ${currentWorkspaceId === workspace.id
                                 ? "opacity-100"
                                 : "opacity-0"
                                 }`}
@@ -80,7 +80,7 @@ export function WorkspaceSwitcher({
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleCreateNew} className="cursor-pointer">
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="me-2 h-4 w-4" />
                     {t("createNewWorkspace")}
                 </DropdownMenuItem>
             </DropdownMenuContent>

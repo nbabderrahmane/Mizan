@@ -69,7 +69,7 @@ export function AppShell({
     return (
         <div className="min-h-screen flex flex-col md:flex-row">
             {/* Desktop Sidebar */}
-            <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-card border-r">
+            <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 ltr:left-0 rtl:right-0 bg-card ltr:border-r rtl:border-l">
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="h-16 flex items-center px-4 border-b">
@@ -122,26 +122,26 @@ export function AppShell({
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/settings/profile`}>
-                                        <User className="mr-2 h-4 w-4" />
+                                        <User className="me-2 h-4 w-4" />
                                         {t("editProfile")}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/members`}>
-                                        <UserPlus className="mr-2 h-4 w-4" />
+                                        <UserPlus className="me-2 h-4 w-4" />
                                         {t("inviteContributor")}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/settings/password`}>
-                                        <Lock className="mr-2 h-4 w-4" />
+                                        <Lock className="me-2 h-4 w-4" />
                                         {t("changePassword")}
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
                                     <Link href={`/w/${currentWorkspaceId}/settings/workspace`}>
-                                        <Building className="mr-2 h-4 w-4" />
+                                        <Building className="me-2 h-4 w-4" />
                                         {t("editWorkspace")}
                                     </Link>
                                 </DropdownMenuItem>
@@ -150,7 +150,7 @@ export function AppShell({
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem asChild className="text-primary hover:text-primary focus:text-primary">
                                             <Link href="/admin">
-                                                <Lock className="mr-2 h-4 w-4" />
+                                                <Lock className="me-2 h-4 w-4" />
                                                 {t("supportAdmin")}
                                             </Link>
                                         </DropdownMenuItem>
@@ -218,7 +218,7 @@ export function AppShell({
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64">
+            <main className="flex-1 md:ms-64">
                 <div className="pt-14 pb-16 md:pt-0 md:pb-0 min-h-screen">
                     {children}
                 </div>

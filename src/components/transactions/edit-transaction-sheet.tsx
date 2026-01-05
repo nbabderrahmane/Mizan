@@ -157,7 +157,7 @@ export function EditTransactionSheet({
         if (transferAccountId) formData.append("transferAccountId", transferAccountId);
         if (isForeign) formData.append("fxRate", fxRate);
 
-        const result = await updateTransaction(transaction.id, formData);
+        const result = await updateTransaction(transaction.id, formData, workspaceId);
 
         setIsLoading(false);
 
@@ -176,7 +176,7 @@ export function EditTransactionSheet({
                 <SheetHeader className="pb-6">
                     <SheetTitle>{t("editTransaction")}</SheetTitle>
                     <SheetDescription>
-                        {t("addTransactionDesc")}
+                        {t("editTransactionDesc")}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -269,13 +269,13 @@ export function EditTransactionSheet({
                                     placeholder="0.00"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
-                                    className="pl-9 text-lg font-bold"
+                                    className="ps-9 text-lg font-bold"
                                 />
-                                <Wallet className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Wallet className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>Currency</Label>
+                            <Label>{common("currency")}</Label>
                             <Select value={currency} onValueChange={setCurrency}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -296,7 +296,7 @@ export function EditTransactionSheet({
                                 <div className="flex items-center gap-2">
                                     {isFetchingRate && <Loader2 className="h-3 w-3 animate-spin" />}
                                     <Input
-                                        className="h-7 w-20 text-right font-mono"
+                                        className="h-7 w-20 text-end font-mono"
                                         value={fxRate}
                                         onChange={(e) => setFxRate(e.target.value)}
                                     />
@@ -306,7 +306,7 @@ export function EditTransactionSheet({
                                 </div>
                             </div>
                             <div className="flex items-center justify-between text-sm font-medium">
-                                <span>Total in {selectedAccount?.base_currency}</span>
+                                <span>{t("totalIn", { currency: selectedAccount?.base_currency || "" })}</span>
                                 <span>
                                     {new Intl.NumberFormat(locale, { style: 'currency', currency: selectedAccount?.base_currency || 'USD' }).format(
                                         (parseFloat(amount) || 0) * (parseFloat(fxRate) || 1)
@@ -338,7 +338,7 @@ export function EditTransactionSheet({
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Subcategory</Label>
+                                    <Label>{t("subcategory")}</Label>
                                     <Select
                                         value={subcategoryId}
                                         onValueChange={setSubcategoryId}
@@ -416,7 +416,7 @@ export function EditTransactionSheet({
                     <div className="space-y-2">
                         <Label>{t("note")}</Label>
                         <Input
-                            placeholder="Dinner at Mama's"
+                            placeholder={t("notePlaceholder")}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />

@@ -102,7 +102,7 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
                     </p>
                 </div>
                 <Button onClick={() => setShowWizard(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="me-2 h-4 w-4" />
                     {t("createBudget")}
                 </Button>
             </div>
@@ -310,7 +310,7 @@ function BudgetRow({ budget, onDelete, onEdit, workspaceId }: { budget: BudgetWi
                             return (
                                 <div className="flex items-center gap-2">
                                     <Badge className="bg-green-500 text-white hover:bg-green-500">
-                                        <Check className="h-3 w-3 mr-1" />
+                                        <Check className="h-3 w-3 me-1" />
                                         {t("paid")}
                                     </Badge>
                                     <span className="text-xs text-muted-foreground">

@@ -228,7 +228,7 @@ export function CreateTransactionDialog({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button>
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="me-2 h-4 w-4" />
                     {t("newTransaction")}
                 </Button>
             </DialogTrigger>
@@ -329,13 +329,13 @@ export function CreateTransactionDialog({
                                     placeholder="0.00"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
-                                    className="pl-9 text-lg font-bold"
+                                    className="ps-9 text-lg font-bold"
                                 />
-                                <Wallet className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Wallet className="absolute start-3 top-3 h-4 w-4 text-muted-foreground" />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>Currency</Label>
+                            <Label>{common("currency")}</Label>
                             <Select value={currency} onValueChange={setCurrency}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -356,14 +356,14 @@ export function CreateTransactionDialog({
                                 <div className="flex items-center gap-2">
                                     {isFetchingRate && <Loader2 className="h-3 w-3 animate-spin" />}
                                     <Input
-                                        className="h-7 w-20 text-right font-mono"
+                                        className="h-7 w-20 text-end font-mono"
                                         value={fxRate}
                                         onChange={(e) => setFxRate(e.target.value)}
                                     />
                                 </div>
                             </div>
                             <div className="flex items-center justify-between text-sm font-medium">
-                                <span>Total in {selectedAccount?.base_currency}</span>
+                                <span>{t("totalIn", { currency: selectedAccount?.base_currency || "" })}</span>
                                 <span>
                                     {new Intl.NumberFormat(locale, { style: 'currency', currency: selectedAccount?.base_currency }).format(
                                         (parseFloat(amount) || 0) * (parseFloat(fxRate) || 0)
@@ -395,7 +395,7 @@ export function CreateTransactionDialog({
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Subcategory</Label>
+                                    <Label>{t("subcategory")}</Label>
                                     <Select
                                         value={subcategoryId}
                                         onValueChange={setSubcategoryId}
@@ -426,7 +426,7 @@ export function CreateTransactionDialog({
                                             className="w-full justify-between font-normal"
                                         >
                                             {vendor || t("searchVendors")}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[450px] p-0">
@@ -462,7 +462,7 @@ export function CreateTransactionDialog({
                                                         >
                                                             <Check
                                                                 className={cn(
-                                                                    "mr-2 h-4 w-4",
+                                                                    "me-2 h-4 w-4",
                                                                     vendor === v ? "opacity-100" : "opacity-0"
                                                                 )}
                                                             />
@@ -481,7 +481,7 @@ export function CreateTransactionDialog({
                     <div className="space-y-2">
                         <Label>{t("note")}</Label>
                         <Input
-                            placeholder="Dinner at Mama's"
+                            placeholder={t("notePlaceholder")}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
@@ -499,7 +499,7 @@ export function CreateTransactionDialog({
                         {common("cancel")}
                     </Button>
                     <Button onClick={handleSubmit} disabled={isLoading}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isLoading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                         {t("addTransaction")}
                     </Button>
                 </DialogFooter>

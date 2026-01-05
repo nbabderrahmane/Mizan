@@ -87,7 +87,7 @@ export function CategoriesPageClient({
                 </div>
                 {canManage && (
                     <Button onClick={() => setCategoryDialogOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="h-4 w-4 me-2" />
                         {t("addCategory")}
                     </Button>
                 )}

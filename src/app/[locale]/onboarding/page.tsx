@@ -12,8 +12,12 @@ import {
 } from "@/components/ui/card";
 import { PlusCircle, Users, ArrowRight, LogOut } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
+import { getTranslations } from "next-intl/server";
 
 export default async function OnboardingPage() {
+    const t = await getTranslations("Onboarding");
+    const common = await getTranslations("Common");
+    const auth = await getTranslations("Auth");
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -41,9 +45,9 @@ export default async function OnboardingPage() {
         <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center space-y-2">
-                    <h1 className="text-4xl font-extrabold tracking-tight">Welcome to Mizan</h1>
+                    <h1 className="text-4xl font-extrabold tracking-tight">{t("welcome")}</h1>
                     <p className="text-muted-foreground text-lg">
-                        Let&apos;s get your financial journey started.
+                        {t("welcomeDescription")}
                     </p>
                 </div>
 
@@ -54,11 +58,11 @@ export default async function OnboardingPage() {
                             <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${hasInvites ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                                 <Users className="w-6 h-6" />
                             </div>
-                            <CardTitle>Join a Workspace</CardTitle>
+                            <CardTitle>{t("joinWorkspace")}</CardTitle>
                             <CardDescription>
                                 {hasInvites
-                                    ? `You have a pending invitation to join ${firstInvite?.workspace_name}.`
-                                    : "You don't have any pending invitations for this email address."}
+                                    ? t("hasInvites", { name: firstInvite?.workspace_name || "" })
+                                    : t("noInvites")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -69,8 +73,8 @@ export default async function OnboardingPage() {
                                 disabled={!hasInvites}
                             >
                                 <Link href={hasInvites ? `/invite/${firstInvite?.token}` : "#"}>
-                                    Join Now
-                                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                                    {t("joinNow")}
+                                    <ArrowRight className="w-4 h-4 ms-2 transition-transform group-hover:translate-x-1" />
                                 </Link>
                             </Button>
                         </CardContent>
@@ -90,16 +94,16 @@ export default async function OnboardingPage() {
                             <div className="w-12 h-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
                                 <PlusCircle className="w-6 h-6" />
                             </div>
-                            <CardTitle>Create New</CardTitle>
+                            <CardTitle>{t("createNew")}</CardTitle>
                             <CardDescription>
-                                Start fresh and manage your own shared budget. You can invite others later.
+                                {t("createNewDesc")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Button asChild variant="outline" className="w-full group">
                                 <Link href="/onboarding/create-workspace">
-                                    Create Workspace
-                                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                                    {t("createWorkspace")}
+                                    <ArrowRight className="w-4 h-4 ms-2 transition-transform group-hover:translate-x-1" />
                                 </Link>
                             </Button>
                         </CardContent>
@@ -109,8 +113,8 @@ export default async function OnboardingPage() {
                 <div className="flex justify-center pt-4">
                     <form action={signOut}>
                         <Button variant="ghost" size="sm" type="submit" className="text-muted-foreground">
-                            <LogOut className="h-4 w-4 mr-2" />
-                            Sign out ({user.email})
+                            <LogOut className="h-4 w-4 me-2" />
+                            {auth("signOut")} ({user.email})
                         </Button>
                     </form>
                 </div>

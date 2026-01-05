@@ -57,7 +57,7 @@ export function AccountsPageClient({
                 </div>
                 {canManage && (
                     <Button onClick={() => setIsCreateOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="h-4 w-4 me-2" />
                         {t("addAccount")}
                     </Button>
                 )}

@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { CategoryWithSubcategories, Subcategory } from "@/lib/actions/category";
+import { useTranslations } from "next-intl";
 
 interface CategoryListProps {
     categories: CategoryWithSubcategories[];
@@ -33,6 +34,8 @@ export function CategoryList({
     onEditSubcategory,
     onDeleteSubcategory,
 }: CategoryListProps) {
+    const t = useTranslations("Categories");
+    const common = useTranslations("Common");
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
         new Set(categories.map((c) => c.id))
     );
@@ -51,14 +54,14 @@ export function CategoryList({
         return (
             <div className="text-center py-12">
                 <Tag className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                <h3 className="mt-4 text-lg font-medium">No categories yet</h3>
+                <h3 className="mt-4 text-lg font-medium">{t("noCategories")}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    Add categories to organize your budget.
+                    {t("noCategoriesDesc")}
                 </p>
                 {canManage && (
                     <Button className="mt-4" onClick={onAddCategory}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Category
+                        <Plus className="h-4 w-4 me-2" />
+                        {t("addCategory")}
                     </Button>
                 )}
             </div>
@@ -108,12 +111,13 @@ function CategoryItem({
     onEditSubcategory,
     onDeleteSubcategory,
 }: CategoryItemProps) {
+    const common = useTranslations("Common");
     return (
         <div className="rounded-lg border bg-card">
             <div className="flex items-center justify-between p-3">
                 <button
                     onClick={onToggle}
-                    className="flex items-center gap-2 flex-1 text-left"
+                    className="flex items-center gap-2 flex-1 text-start"
                 >
                     {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -143,13 +147,13 @@ function CategoryItem({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={onEdit}>
-                                    Edit
+                                    {common("edit")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     onClick={onDelete}
                                     className="text-destructive"
                                 >
-                                    Delete
+                                    {common("delete")}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -187,6 +191,7 @@ function SubcategoryItem({
     onEdit,
     onDelete,
 }: SubcategoryItemProps) {
+    const common = useTranslations("Common");
     return (
         <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50">
             <div className="flex items-center gap-2">
@@ -202,13 +207,13 @@ function SubcategoryItem({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={onEdit}>
-                            Edit
+                            {common("edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={onDelete}
                             className="text-destructive"
                         >
-                            Delete
+                            {common("delete")}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

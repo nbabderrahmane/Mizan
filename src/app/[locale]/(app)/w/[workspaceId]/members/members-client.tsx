@@ -235,7 +235,7 @@ export function MembersClient({
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant={member.role === "OWNER" ? "default" : "secondary"} className="font-normal capitalize">
-                                                    {member.role === "OWNER" && <Shield className="w-3 h-3 mr-1 text-primary" />}
+                                                    {member.role === "OWNER" && <Shield className="w-3 h-3 me-1 text-primary" />}
                                                     {member.role.toLowerCase()}
                                                 </Badge>
                                             </TableCell>
@@ -257,15 +257,15 @@ export function MembersClient({
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>{common("actions")}</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => handleRoleUpdate(member.user_id, "MANAGER")}>
-                                                                <UserCog className="w-4 h-4 mr-2" />
+                                                                <UserCog className="w-4 h-4 me-2" />
                                                                 {t("makeManager")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleRoleUpdate(member.user_id, "CONTRIBUTOR")}>
-                                                                <User className="w-4 h-4 mr-2" />
+                                                                <User className="w-4 h-4 me-2" />
                                                                 {t("makeContributor")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleRoleUpdate(member.user_id, "VIEWER")}>
-                                                                <User className="w-4 h-4 mr-2" />
+                                                                <User className="w-4 h-4 me-2" />
                                                                 {t("makeViewer")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
@@ -273,7 +273,7 @@ export function MembersClient({
                                                                 className="text-destructive font-medium"
                                                                 onClick={() => handleRemoveMember(member.user_id)}
                                                             >
-                                                                <UserMinus className="w-4 h-4 mr-2" />
+                                                                <UserMinus className="w-4 h-4 me-2" />
                                                                 {t("removeFromWorkspace")}
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>

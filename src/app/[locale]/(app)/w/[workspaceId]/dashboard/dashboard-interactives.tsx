@@ -68,7 +68,7 @@ export function DashboardInteractives({ workspaceId, currency, dueAmount, pendin
                         {formatCurrency(dueAmount)}
                     </div>
                     <Button onClick={handleApply} disabled={isApplying || dueAmount <= 0}>
-                        {isApplying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ArrowRight className="h-4 w-4 mr-2" />}
+                        {isApplying ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <ArrowRight className="h-4 w-4 me-2" />}
                         {t("apply")}
                     </Button>
                 </CardContent>
@@ -106,7 +106,7 @@ export function DashboardInteractives({ workspaceId, currency, dueAmount, pendin
                                         className="h-8 text-xs"
                                         onClick={() => handleConfirmPayment(payment.id)}
                                     >
-                                        <Plus className="h-3 w-3 mr-1" />
+                                        <Plus className="h-3 w-3 me-1" />
                                         {t("pay")}
                                     </Button>
                                 </div>

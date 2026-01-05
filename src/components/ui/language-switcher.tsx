@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const switchLocale = (nextLocale: "en" | "fr") => {
+    const switchLocale = (nextLocale: "en" | "fr" | "es" | "ar") => {
         router.replace(pathname, { locale: nextLocale });
     };
 
@@ -35,6 +35,12 @@ export function LanguageSwitcher() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => switchLocale("fr")} className={locale === "fr" ? "bg-accent" : ""}>
                     🇫🇷 Français
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => switchLocale("es")} className={locale === "es" ? "bg-accent" : ""}>
+                    🇪🇸 Español
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => switchLocale("ar")} className={locale === "ar" ? "bg-accent" : ""}>
+                    🇲🇦 العربية
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

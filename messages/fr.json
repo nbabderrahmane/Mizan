@@ -8,6 +8,7 @@
         "delete": "Supprimer",
         "edit": "Modifier",
         "add": "Ajouter",
+        "create": "Créer",
         "error": "Une erreur est survenue",
         "success": "Action terminée avec succès",
         "actions": "Actions",
@@ -18,7 +19,6 @@
         "copy": "Copier",
         "link": "Lien",
         "status": "Statut",
-        "creating": "Création...",
         "saving": "Enregistrement...",
         "deleting": "Suppression...",
         "unknown": "Inconnu",
@@ -26,7 +26,34 @@
         "search": "Rechercher...",
         "months": "mois",
         "subcategory": "Sous-catégorie",
-        "currency": "Devise"
+        "currency": "Devise",
+        "email": "E-mail",
+        "confirmPassword": "Confirmer le mot de passe",
+        "creating": "Création..."
+    },
+    "Onboarding": {
+        "welcome": "Bienvenue sur Mizan",
+        "welcomeDescription": "Commençons votre voyage financier.",
+        "joinWorkspace": "Rejoindre un espace",
+        "joinNow": "Rejoindre maintenant",
+        "noInvites": "Vous n'avez aucune invitation en attente pour cette adresse e-mail.",
+        "hasInvites": "Vous avez une invitation en attente pour rejoindre {name}.",
+        "createNew": "Créer nouveau",
+        "createNewDesc": "Partez de zéro et gérez votre propre budget partagé. Vous pourrez inviter d'autres personnes plus tard.",
+        "createWorkspace": "Créer l'espace",
+        "createYourWorkspace": "Créez votre espace de travail",
+        "workspaceName": "Nom de l'Espace"
+    },
+    "Invitations": {
+        "invalid": "Invitation invalide",
+        "invalidDesc": "Ce lien d'invitation est invalide ou a expiré.",
+        "signInToJoin": "Connectez-vous pour rejoindre",
+        "signInToJoinDesc": "Vous devez être connecté pour rejoindre cet espace de travail.",
+        "signIn": "Se connecter",
+        "createAccount": "Créer un compte",
+        "joining": "Rejoint...",
+        "joined": "Rejoint avec succès",
+        "joinFailed": "Échec de la jonction à l'espace"
     },
     "Dashboard": {
         "title": "Tableau de bord",
@@ -88,6 +115,7 @@
         "cash": "Espèces",
         "savings": "Épargne",
         "credit": "Carte de crédit",
+        "investment": "Investissement",
         "other": "Autre",
         "addDescription": "Ajoutez un nouveau compte financier pour suivre votre argent.",
         "editDescription": "Mettez à jour les détails de votre compte.",
@@ -120,7 +148,8 @@
         "deleteSubcategory": "Supprimer la sous-catégorie",
         "deleteCategoryConfirm": "Supprimer cette catégorie ? Toutes les sous-catégories doivent être supprimées en premier.",
         "deleteSubcategoryConfirm": "Supprimer cette sous-catégorie ?",
-        "noCategories": "Pas encore de catégories. Organisez votre budget en en ajoutant une.",
+        "noCategories": "Pas encore de catégories",
+        "noCategoriesDesc": "Ajoutez des catégories pour organiser votre budget.",
         "categoryName": "Nom de la catégorie",
         "subcategoryName": "Nom de la sous-catégorie",
         "parentCategory": "Catégorie Parente",
@@ -170,7 +199,10 @@
         "selectMember": "Sélectionner un membre",
         "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette transaction ?",
         "deleted": "Transaction supprimée",
-        "locked": "La transaction est verrouillée"
+        "locked": "La transaction est verrouillée",
+        "totalIn": "Total en {currency}",
+        "subcategory": "Sous-catégorie",
+        "notePlaceholder": "Dîner chez Maman"
     },
     "Budgets": {
         "title": "Budgets & Plans",

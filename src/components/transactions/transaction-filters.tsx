@@ -177,7 +177,7 @@ export function TransactionFilters({
                             className="h-8 w-full justify-between text-xs font-medium bg-background px-3"
                         >
                             {vendorParam || t("allVendors")}
-                            <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
+                            <ChevronsUpDown className="ms-2 h-3 w-3 shrink-0 opacity-50" />
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[200px] p-0">
@@ -193,7 +193,7 @@ export function TransactionFilters({
                                     >
                                         <Check
                                             className={cn(
-                                                "mr-2 h-3 w-3",
+                                                "me-2 h-3 w-3",
                                                 !vendorParam ? "opacity-100" : "opacity-0"
                                             )}
                                         />
@@ -208,7 +208,7 @@ export function TransactionFilters({
                                         >
                                             <Check
                                                 className={cn(
-                                                    "mr-2 h-3 w-3",
+                                                    "me-2 h-3 w-3",
                                                     vendorParam === v ? "opacity-100" : "opacity-0"
                                                 )}
                                             />
@@ -247,11 +247,11 @@ export function TransactionFilters({
                             id="date"
                             variant={"outline"}
                             className={cn(
-                                "h-8 justify-start text-left font-medium text-xs bg-background w-full",
+                                "h-8 justify-start text-start font-medium text-xs bg-background w-full",
                                 !date && "text-muted-foreground"
                             )}
                         >
-                            <CalendarIcon className="mr-2 h-3 w-3" />
+                            <CalendarIcon className="me-2 h-3 w-3" />
                             {date?.from ? (
                                 date.to ? (
                                     <>

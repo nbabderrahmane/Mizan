@@ -111,7 +111,7 @@ export function TransactionsPageClient({
                                         variant="outline"
                                         onClick={() => setPrefilledPayment(payment)}
                                     >
-                                        <Plus className="h-4 w-4 mr-1" />
+                                        <Plus className="h-4 w-4 me-1" />
                                         {t("createTransaction")}
                                     </Button>
                                 </div>

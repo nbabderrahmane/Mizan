@@ -15,8 +15,11 @@ import {
 } from "@/components/ui/card";
 import { updatePassword } from "@/lib/actions/auth";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ResetPasswordPage() {
+    const t = useTranslations("Auth");
+    const common = useTranslations("Common");
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,7 +55,7 @@ export default function ResetPasswordPage() {
                 router.push("/auth/sign-in");
             }, 3000);
         } else {
-            setError(result.error?.message || "Failed to update password. Link may have expired.");
+            setError(result.error?.message || t("updateFailed"));
         }
 
         setIsLoading(false);
@@ -68,17 +71,17 @@ export default function ResetPasswordPage() {
                                 <CheckCircle2 className="w-8 h-8" />
                             </div>
                         </div>
-                        <CardTitle className="text-2xl">Password updated</CardTitle>
+                        <CardTitle className="text-2xl">{t("passwordUpdated")}</CardTitle>
                         <CardDescription>
-                            Your password has been successfully reset. You can now sign in with your new password.
+                            {t("passwordUpdatedDesc")}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-muted-foreground">Redirecting you to sign in...</p>
+                        <p className="text-sm text-muted-foreground">{t("redirectingSignIn")}</p>
                     </CardContent>
                     <CardFooter className="flex justify-center">
                         <Button variant="outline" onClick={() => router.push("/auth/sign-in")}>
-                            Sign in now
+                            {t("signIn")}
                         </Button>
                     </CardFooter>
                 </Card>
@@ -90,9 +93,9 @@ export default function ResetPasswordPage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Enter new password</CardTitle>
+                    <CardTitle className="text-2xl">{t("enterNewPassword")}</CardTitle>
                     <CardDescription>
-                        Set a new password for your account. Make sure it&apos;s strong and memorable.
+                        {t("resetPasswordDesc")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -104,7 +107,7 @@ export default function ResetPasswordPage() {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="password">New Password</Label>
+                            <Label htmlFor="password">{t("newPassword")}</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -117,7 +120,7 @@ export default function ResetPasswordPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword">Confirm Password</Label>
+                            <Label htmlFor="confirmPassword">{common("confirmPassword")}</Label>
                             <Input
                                 id="confirmPassword"
                                 type="password"
@@ -130,7 +133,7 @@ export default function ResetPasswordPage() {
                             />
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update password"}
+                            {isLoading ? t("updating") : t("updatePassword")}
                         </Button>
                     </form>
                 </CardContent>

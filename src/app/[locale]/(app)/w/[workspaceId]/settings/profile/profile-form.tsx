@@ -95,6 +95,8 @@ export function ProfileForm({ firstName, lastName, email, currentLocale }: Profi
                         <SelectContent>
                             <SelectItem value="en">🇺🇸 English</SelectItem>
                             <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                            <SelectItem value="es">🇪🇸 Español</SelectItem>
+                            <SelectItem value="ar">🇲🇦 العربية</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

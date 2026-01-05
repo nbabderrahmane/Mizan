@@ -15,8 +15,11 @@ import {
 } from "@/components/ui/card";
 import { forgotPassword } from "@/lib/actions/auth";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
+    const t = useTranslations("Auth");
+    const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -30,7 +33,7 @@ export default function ForgotPasswordPage() {
         if (result.success) {
             setIsSubmitted(true);
         } else {
-            setError(result.error?.message || "An error occurred");
+            setError(result.error?.message || common("error"));
         }
 
         setIsLoading(false);
@@ -46,15 +49,15 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle2 className="w-8 h-8" />
                             </div>
                         </div>
-                        <CardTitle className="text-2xl">Check your email</CardTitle>
+                        <CardTitle className="text-2xl">{t("checkEmail")}</CardTitle>
                         <CardDescription>
-                            We&apos;ve sent a password reset link to your email address.
+                            {t("checkEmailDesc")}
                         </CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-center">
                         <Link href="/auth/sign-in" className="text-sm text-primary hover:underline flex items-center">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to sign in
+                            <ArrowLeft className="w-4 h-4 me-2" />
+                            {common("backToSignIn")}
                         </Link>
                     </CardFooter>
                 </Card>
@@ -66,9 +69,9 @@ export default function ForgotPasswordPage() {
         <div className="min-h-screen flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Reset password</CardTitle>
+                    <CardTitle className="text-2xl">{t("resetPassword")}</CardTitle>
                     <CardDescription>
-                        Enter your email address and we&apos;ll send you a link to reset your password.
+                        {t("resetPasswordDesc")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -79,7 +82,7 @@ export default function ForgotPasswordPage() {
                             </div>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{common("email")}</Label>
                             <Input
                                 id="email"
                                 name="email"
@@ -90,14 +93,14 @@ export default function ForgotPasswordPage() {
                             />
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? "Sending link..." : "Send reset link"}
+                            {isLoading ? t("sendingLink") : t("sendResetLink")}
                         </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="flex justify-center">
                     <Link href="/auth/sign-in" className="text-sm text-muted-foreground hover:text-primary flex items-center">
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to sign in
+                        <ArrowLeft className="w-4 h-4 me-2" />
+                        {common("backToSignIn")}
                     </Link>
                 </CardFooter>
             </Card>

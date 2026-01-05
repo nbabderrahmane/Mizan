@@ -27,9 +27,10 @@ export default async function RootLayout({
 
     // Providing all messages to the client-side
     const messages = await getMessages();
+    const dir = locale === "ar" ? "rtl" : "ltr";
 
     return (
-        <html lang={locale}>
+        <html lang={locale} dir={dir}>
             <body className="antialiased">
                 <NextIntlClientProvider messages={messages} locale={locale}>
                     {children}

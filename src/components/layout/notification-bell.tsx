@@ -77,13 +77,13 @@ export function NotificationBell() {
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <button
-                    className="relative flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left"
+                    className="relative flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-start"
                     onClick={() => setOpen(true)}
                 >
                     <div className="relative">
                         <Bell className="h-4 w-4" />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                            <span className="absolute -top-1.5 ltr:-right-1.5 rtl:-left-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
                                 {unreadCount > 9 ? "9+" : unreadCount}
                             </span>
                         )}
@@ -101,7 +101,7 @@ export function NotificationBell() {
                             className="h-8 px-2 text-xs text-muted-foreground hover:text-primary"
                             onClick={handleMarkAllRead}
                         >
-                            <CheckCheck className="h-3 w-3 mr-1" />
+                            <CheckCheck className="h-3 w-3 me-1" />
                             {t("markAllRead")}
                         </Button>
                     )}
@@ -134,7 +134,7 @@ export function NotificationBell() {
                                     }}
                                 >
                                     {!n.is_read && (
-                                        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full" />
+                                        <div className="absolute ltr:left-1 rtl:right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full" />
                                     )}
                                     <div className="mt-1 flex-shrink-0">
                                         {getIcon(n.type)}
@@ -156,7 +156,7 @@ export function NotificationBell() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity ml-auto"
+                                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity ms-auto"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleMarkRead(n.id);
