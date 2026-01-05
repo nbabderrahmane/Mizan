@@ -200,12 +200,12 @@ export function AppShell({
 
             {/* Mobile Bottom Nav */}
             <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t">
-                <div className="flex items-center justify-around h-16 relative">
+                <div className="grid grid-cols-5 h-16 items-center">
                     {/* Dashboard */}
                     <Link
                         href={`/w/${currentWorkspaceId}/dashboard`}
                         className={cn(
-                            "flex flex-col items-center gap-1 px-2 py-2 text-xs",
+                            "flex flex-col items-center gap-1 text-[10px]",
                             isActive("dashboard") ? "text-primary" : "text-muted-foreground"
                         )}
                     >
@@ -217,7 +217,7 @@ export function AppShell({
                     <Link
                         href={`/w/${currentWorkspaceId}/transactions`}
                         className={cn(
-                            "flex flex-col items-center gap-1 px-2 py-2 text-xs",
+                            "flex flex-col items-center gap-1 text-[10px]",
                             isActive("transactions") ? "text-primary" : "text-muted-foreground"
                         )}
                     >
@@ -226,35 +226,28 @@ export function AppShell({
                     </Link>
 
                     {/* Central Add Button */}
-                    <div className="flex items-center justify-center -mt-8 mx-2">
-                        <CreateTransactionDialog
-                            workspaceId={currentWorkspaceId}
-                            accounts={accounts}
-                            categories={categories}
-                            trigger={
-                                <Button size="icon" className="h-14 w-14 rounded-full shadow-xl border-4 border-background bg-primary text-primary-foreground hover:scale-105 transition-transform">
-                                    <Plus className="h-8 w-8" />
-                                </Button>
-                            }
-                        />
+                    <div className="flex items-center justify-center relative">
+                        <div className="absolute -top-6">
+                            <CreateTransactionDialog
+                                workspaceId={currentWorkspaceId}
+                                accounts={accounts}
+                                categories={categories}
+                                trigger={
+                                    <Button size="icon" className="h-14 w-14 rounded-full shadow-xl border-4 border-background bg-primary text-primary-foreground hover:scale-105 transition-transform">
+                                        <Plus className="h-8 w-8" />
+                                    </Button>
+                                }
+                            />
+                        </div>
                     </div>
 
-                    {/* Accounts */}
-                    <Link
-                        href={`/w/${currentWorkspaceId}/accounts`}
-                        className={cn(
-                            "flex flex-col items-center gap-1 px-2 py-2 text-xs",
-                            isActive("accounts") ? "text-primary" : "text-muted-foreground"
-                        )}
-                    >
-                        <Wallet className="h-5 w-5" />
-                        <span>{t("accounts")}</span>
-                    </Link>
+                    {/* Spacer to maintain grid balance */}
+                    <div />
 
                     {/* Actions Menu */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="flex flex-col items-center gap-1 px-2 py-2 text-xs text-muted-foreground">
+                            <button className="flex flex-col items-center gap-1 text-[10px] text-muted-foreground">
                                 <Menu className="h-5 w-5" />
                                 <span>{common("actions")}</span>
                             </button>
@@ -263,9 +256,9 @@ export function AppShell({
                             <DropdownMenuLabel className="text-xs text-muted-foreground px-2 py-1.5">{common("actions")}</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                                <Link href={`/w/${currentWorkspaceId}/transactions`} className="flex items-center gap-2">
-                                    <Receipt className="h-4 w-4" />
-                                    {t("transactions")}
+                                <Link href={`/w/${currentWorkspaceId}/accounts`} className="flex items-center gap-2">
+                                    <Wallet className="h-4 w-4" />
+                                    {t("accounts")}
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
@@ -299,9 +292,17 @@ export function AppShell({
 
             {/* Mobile Header */}
             <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card fixed top-0 left-0 right-0 z-40">
-                <Link href="/" className="font-bold text-lg flex items-center h-full">
-                    Mizan
-                </Link>
+                <div className="flex items-center gap-2 h-full py-2">
+                    <Link href="/" className="font-bold text-lg flex items-center h-full">
+                        Mizan
+                    </Link>
+                    <div className="w-40">
+                        <WorkspaceSwitcher
+                            workspaces={workspaces}
+                            currentWorkspaceId={currentWorkspaceId}
+                        />
+                    </div>
+                </div>
                 <div className="flex items-center h-full gap-1">
                     <ThemeToggle />
                     <NotificationBell />
