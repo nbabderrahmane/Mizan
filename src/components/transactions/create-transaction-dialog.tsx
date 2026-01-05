@@ -72,6 +72,8 @@ interface CreateTransactionDialogProps {
     prefilled?: PrefilledPayment | null;
     onClose?: () => void;
     trigger?: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 const CURRENCIES = ["USD", "EUR", "GBP", "MAD", "AED"];
@@ -85,12 +87,18 @@ export function CreateTransactionDialog({
     prefilled,
     onClose,
     trigger,
+    open: controlledOpen,
+    onOpenChange: setControlledOpen,
 }: CreateTransactionDialogProps) {
     const t = useTranslations("Transactions");
     const common = useTranslations("Common");
     const locale = useLocale();
     const router = useRouter();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = setControlledOpen ?? setInternalOpen;
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -226,16 +234,21 @@ export function CreateTransactionDialog({
         }
     }
 
+    const isControlled = controlledOpen !== undefined;
+
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button className="w-full">
-                        <Plus className="me-2 h-4 w-4" />
-                        {t("newTransaction")}
-                    </Button>
-                )}
-            </DialogTrigger>
+            {/* Only render trigger if explicitly provided OR if we are NOT in controlled mode */}
+            {(trigger || !isControlled) && (
+                <DialogTrigger asChild>
+                    {trigger || (
+                        <Button className="w-full">
+                            <Plus className="me-2 h-4 w-4" />
+                            {t("newTransaction")}
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>{t("addTransaction")}</DialogTitle>

@@ -8,6 +8,7 @@ import { MonthFilter } from "./month-filter";
 import { BalanceChart } from "./balance-chart";
 import { DashboardInteractives } from "./dashboard-interactives";
 import { getTranslations } from "next-intl/server";
+import { listCategories } from "@/lib/actions/category";
 
 export default async function DashboardPage({
     params,
@@ -19,10 +20,11 @@ export default async function DashboardPage({
     const common = await getTranslations("Common");
 
     // Fetch workspace and stats
-    const [workspaceResult, stats, accountsResult] = await Promise.all([
+    const [workspaceResult, stats, accountsResult, categoriesResult] = await Promise.all([
         getWorkspace(workspaceId),
         getDashboardStats(workspaceId),
         listAccounts(workspaceId),
+        listCategories(workspaceId),
     ]);
 
     if (!workspaceResult.success || !workspaceResult.data) {
@@ -53,7 +55,13 @@ export default async function DashboardPage({
             </div>
 
             {/* Quick Start Checklist */}
-            <QuickStart workspaceId={workspaceId} stats={stats} />
+            <QuickStart
+                workspaceId={workspaceId}
+                stats={stats}
+                accounts={accountsResult.success ? accountsResult.data || [] : []}
+                categories={categoriesResult.success ? categoriesResult.data || [] : []}
+                currency={currency}
+            />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
