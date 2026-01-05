@@ -93,10 +93,10 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
     }).sort((a, b) => b.totalBudget - a.totalBudget);
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="p-6 space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+                    <h1 className="text-2xl font-bold">{t("title")}</h1>
                     <p className="text-muted-foreground">
                         {t("description")}
                     </p>
