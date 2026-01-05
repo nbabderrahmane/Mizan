@@ -31,7 +31,11 @@ import { useRouter } from "next/navigation";
 
 import { useTranslations } from "next-intl";
 
-export function NotificationBell() {
+interface NotificationBellProps {
+    showLabel?: boolean;
+}
+
+export function NotificationBell({ showLabel = true }: NotificationBellProps) {
     const t = useTranslations("Navigation");
     const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -77,18 +81,24 @@ export function NotificationBell() {
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <button
-                    className="relative flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-start"
+                    className={cn(
+                        "relative flex items-center transition-colors text-muted-foreground hover:text-foreground",
+                        showLabel ? "gap-3 px-3 py-2 rounded-md text-sm w-full text-start hover:bg-muted" : "p-2 rounded-full"
+                    )}
                     onClick={() => setOpen(true)}
                 >
                     <div className="relative">
-                        <Bell className="h-4 w-4" />
+                        <Bell className={cn(showLabel ? "h-4 w-4" : "h-5 w-5")} />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-1.5 ltr:-right-1.5 rtl:-left-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                            <span className={cn(
+                                "absolute flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground",
+                                showLabel ? "-top-1.5 ltr:-right-1.5 rtl:-left-1.5 h-4 w-4" : "-top-1 -right-1 h-4 w-4"
+                            )}>
                                 {unreadCount > 9 ? "9+" : unreadCount}
                             </span>
                         )}
                     </div>
-                    <span>{t("notifications")}</span>
+                    {showLabel && <span>{t("notifications")}</span>}
                 </button>
             </PopoverTrigger>
             <PopoverContent

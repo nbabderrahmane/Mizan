@@ -241,8 +241,17 @@ export function AppShell({
                         </div>
                     </div>
 
-                    {/* Spacer to maintain grid balance */}
-                    <div />
+                    {/* Spacer to maintain grid balance, or another item */}
+                    <Link
+                        href={`/w/${currentWorkspaceId}/accounts`}
+                        className={cn(
+                            "flex flex-col items-center gap-1 text-[10px]",
+                            isActive("accounts") ? "text-primary" : "text-muted-foreground"
+                        )}
+                    >
+                        <Wallet className="h-5 w-5" />
+                        <span>{t("accounts")}</span>
+                    </Link>
 
                     {/* Actions Menu */}
                     <DropdownMenu>
@@ -303,9 +312,9 @@ export function AppShell({
                         />
                     </div>
                 </div>
-                <div className="flex items-center h-full gap-1">
+                <div className="flex items-center h-full">
                     <ThemeToggle />
-                    <NotificationBell />
+                    <NotificationBell showLabel={false} />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
