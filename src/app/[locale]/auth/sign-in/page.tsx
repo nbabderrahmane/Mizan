@@ -35,7 +35,7 @@ function SignInForm() {
         const result = await signIn(formData);
 
         if (result.success) {
-            router.push(returnTo || "/");
+            window.location.href = returnTo || "/";
         } else {
             setError(result.error?.message || common("error"));
         }
