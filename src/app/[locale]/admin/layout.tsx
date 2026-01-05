@@ -1,4 +1,4 @@
-import { checkAdminAccess } from "@/app/admin/actions";
+import { checkAdminAccess } from "@/app/[locale]/admin/actions";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, SidebarClose } from "lucide-react";

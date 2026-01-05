@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BalanceChart } from "@/app/(app)/w/[workspaceId]/dashboard/balance-chart";
+import { BalanceChart } from "@/app/[locale]/(app)/w/[workspaceId]/dashboard/balance-chart";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { TransactionFilters } from "@/components/transactions/transaction-filters";
 import { EditTransactionSheet } from "@/components/transactions/edit-transaction-sheet";
