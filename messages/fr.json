@@ -202,6 +202,7 @@
         "locked": "La transaction est verrouillée",
         "totalIn": "Total en {currency}",
         "subcategory": "Sous-catégorie",
+        "selectSubcategory": "Sélectionnez la sous-catégorie",
         "notePlaceholder": "Dîner chez Maman"
     },
     "Budgets": {
@@ -257,7 +258,8 @@
         "goalTarget": "Objectif Global",
         "subcategoryName": "Sous-catégorie / Nom",
         "configMissing": "Configuration manquante. Veuillez supprimer et recréer.",
-        "uncategorized": "Non catégorisé"
+        "uncategorized": "Non catégorisé",
+        "pickDate": "Choisir une date"
     },
     "Members": {
         "title": "Membres",

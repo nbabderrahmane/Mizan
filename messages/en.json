@@ -202,6 +202,7 @@
         "locked": "Transaction is locked",
         "totalIn": "Total in {currency}",
         "subcategory": "Subcategory",
+        "selectSubcategory": "Select subcategory",
         "notePlaceholder": "Dinner at Mama's"
     },
     "Budgets": {
@@ -257,7 +258,8 @@
         "goalTarget": "Goal Target",
         "subcategoryName": "Subcategory / Name",
         "configMissing": "Configuration missing. Please delete and recreate.",
-        "uncategorized": "Uncategorized"
+        "uncategorized": "Uncategorized",
+        "pickDate": "Pick a date"
     },
     "Members": {
         "title": "Members",

@@ -202,6 +202,7 @@
         "locked": "La transacción está bloqueada",
         "totalIn": "Total en {currency}",
         "subcategory": "Subcategoría",
+        "selectSubcategory": "Seleccionar subcategoría",
         "notePlaceholder": "Cena en casa de Mamá"
     },
     "Budgets": {

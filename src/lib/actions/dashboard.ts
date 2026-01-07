@@ -1,6 +1,6 @@
 "use server";
 
-import { getBalanceHistory } from "@/lib/data/dashboard";
+import { getCachedBalanceHistory } from "@/lib/data/dashboard-cached";
 
 export async function getBalanceHistoryAction(
     workspaceId: string,
@@ -8,7 +8,7 @@ export async function getBalanceHistoryAction(
     accountId?: string
 ) {
     try {
-        const data = await getBalanceHistory(workspaceId, range, accountId);
+        const data = await getCachedBalanceHistory(workspaceId, range, accountId);
         return { success: true, data };
     } catch (error) {
         console.error("Error fetching balance history:", error);

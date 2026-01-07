@@ -71,11 +71,7 @@ export function AccountDetailClient({
                         </p>
                     </div>
                 </div>
-                <CreateTransactionDialog
-                    workspaceId={workspaceId}
-                    accounts={accounts}
-                    categories={categories}
-                />
+                {/* Removed Global Transaction Button from here as requested */}
             </div>
 
             {/* Stats Cards */}

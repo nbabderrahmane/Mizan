@@ -168,6 +168,16 @@ export async function createTransaction(
 
         if (error) throw error;
 
+        // Upsert Vendor to Persistent Table
+        if (validated.vendor) {
+            await supabase
+                .from("workspace_vendors")
+                .upsert(
+                    { workspace_id: workspaceId, name: validated.vendor },
+                    { onConflict: "workspace_id,name" }
+                );
+        }
+
         // Handle Transfer Target
         if (validated.type === "transfer" && validated.transferAccountId) {
             const { data: targetAccount } = await supabase
@@ -295,6 +305,16 @@ export async function updateTransaction(
 
         if (updateError) throw updateError;
 
+        // Upsert Vendor to Persistent Table
+        if (validated.vendor) {
+            await supabase
+                .from("workspace_vendors")
+                .upsert(
+                    { workspace_id: workspaceId, name: validated.vendor },
+                    { onConflict: "workspace_id,name" }
+                );
+        }
+
         revalidatePath(`/w/${workspaceId}/dashboard`);
         revalidatePath(`/w/${workspaceId}/transactions`);
         revalidatePath(`/w/${workspaceId}/reports`);
@@ -347,11 +367,11 @@ export async function getTransactions(
 export async function getUniqueVendors(workspaceId: string): Promise<string[]> {
     const supabase = await createClient();
     const { data } = await supabase
-        .from("transactions")
-        .select("vendor")
+        .from("workspace_vendors")
+        .select("name")
         .eq("workspace_id", workspaceId)
-        .not("vendor", "is", null);
+        .order("name");
 
     if (!data) return [];
-    return Array.from(new Set(data.map(d => d.vendor).filter(Boolean))) as string[];
+    return data.map(d => d.name);
 }

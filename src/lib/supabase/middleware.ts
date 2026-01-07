@@ -29,11 +29,20 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         }
     );
 
+    const pathname = request.nextUrl.pathname;
+
+    // EXCLUSION: Skip DB calls for static assets and images
+    if (
+        pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|mp4)$/) ||
+        pathname.startsWith('/_next/') ||
+        pathname.startsWith('/api/') // Let API routes handle their own auth
+    ) {
+        return supabaseResponse;
+    }
+
     const {
         data: { user },
     } = await supabase.auth.getUser();
-
-    const pathname = request.nextUrl.pathname;
 
     // Helper to check if a path corresponds to a public route, ignoring locale prefix
     const isPublicRoute = (path: string) => {

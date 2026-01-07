@@ -202,6 +202,7 @@
         "locked": "المعاملة مقفلة",
         "totalIn": "الإجمالي بـ {currency}",
         "subcategory": "فئة فرعية",
+        "selectSubcategory": "اختر فئة فرعية",
         "notePlaceholder": "عشاء عند ماما"
     },
     "Budgets": {

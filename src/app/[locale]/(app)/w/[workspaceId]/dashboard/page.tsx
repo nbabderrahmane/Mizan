@@ -1,6 +1,6 @@
 import { getWorkspace } from "@/lib/actions/workspace";
 import { listAccounts } from "@/lib/actions/account";
-import { getDashboardStats } from "@/lib/data/dashboard";
+import { getCachedDashboardStats } from "@/lib/data/dashboard-cached";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuickStart } from "./quick-start";
 import { ExpenseChart } from "./expense-chart";
@@ -22,7 +22,7 @@ export default async function DashboardPage({
     // Fetch workspace and stats
     const [workspaceResult, stats, accountsResult, categoriesResult] = await Promise.all([
         getWorkspace(workspaceId),
-        getDashboardStats(workspaceId),
+        getCachedDashboardStats(workspaceId),
         listAccounts(workspaceId),
         listCategories(workspaceId),
     ]);

@@ -19,7 +19,9 @@ import {
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
@@ -392,44 +394,37 @@ export function CreateTransactionDialog({
 
                     {type !== 'transfer' && (
                         <>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>{t("category")}</Label>
-                                    <Select value={categoryId} onValueChange={(val) => {
-                                        setCategoryId(val);
-                                        setSubcategoryId("");
-                                    }}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {filteredCategories.map((cat) => (
-                                                <SelectItem key={cat.id} value={cat.id}>
-                                                    {cat.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>{t("subcategory")}</Label>
-                                    <Select
-                                        value={subcategoryId}
-                                        onValueChange={setSubcategoryId}
-                                        disabled={!categoryId}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {categories.find(c => c.id === categoryId)?.subcategories.map((sub) => (
-                                                <SelectItem key={sub.id} value={sub.id}>
-                                                    {sub.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div className="space-y-2">
+                                <Label>{t("subcategory")}</Label>
+                                <Select
+                                    value={subcategoryId}
+                                    onValueChange={(subId) => {
+                                        setSubcategoryId(subId);
+                                        // Auto-select parent category
+                                        for (const cat of categories) {
+                                            if (cat.subcategories.some(s => s.id === subId)) {
+                                                setCategoryId(cat.id);
+                                                break;
+                                            }
+                                        }
+                                    }}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={t("selectSubcategory")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {filteredCategories.map((cat) => (
+                                            <SelectGroup key={cat.id}>
+                                                <SelectLabel className="text-xs text-muted-foreground px-2 py-1.5">{cat.name}</SelectLabel>
+                                                {cat.subcategories.map((sub) => (
+                                                    <SelectItem key={sub.id} value={sub.id} className="ps-4">
+                                                        {sub.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             <div className="space-y-2">
