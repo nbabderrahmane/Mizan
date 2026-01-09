@@ -11,7 +11,7 @@ const withPWA = require("next-pwa")({
     dest: "public",
     register: true,
     skipWaiting: true,
-    disable: true, // FORCE DISABLE to debug runtime error
+    disable: false, // Enable PWA even in dev to test installation
 });
 
 export default withNextIntl(withPWA(nextConfig));

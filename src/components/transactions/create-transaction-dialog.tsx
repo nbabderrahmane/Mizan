@@ -42,9 +42,9 @@ import { createTransaction, getUniqueVendors } from "@/lib/actions/transaction";
 import { fetchFxRateAction } from "@/lib/services/fx";
 import { BudgetWithConfigs } from "@/lib/validations/budget";
 import { useLocale, useTranslations } from "next-intl";
-import { MagicDraftButton } from "@/components/ai/MagicDraftButton";
-import { MagicDraftDrawer } from "@/components/ai/MagicDraftDrawer";
-import { DraftTransaction } from "@/lib/local-ai/types";
+// import { MagicDraftButton } from "@/components/ai/MagicDraftButton";
+// import { MagicDraftDrawer } from "@/components/ai/MagicDraftDrawer";
+// import { DraftTransaction } from "@/lib/local-ai/types";
 
 interface Account {
     id: string;
@@ -100,7 +100,7 @@ export function CreateTransactionDialog({
     const locale = useLocale();
     const router = useRouter();
     const [internalOpen, setInternalOpen] = useState(false);
-    const [magicOpen, setMagicOpen] = useState(false);
+    // const [magicOpen, setMagicOpen] = useState(false);
 
     const open = controlledOpen ?? internalOpen;
     const setOpen = setControlledOpen ?? setInternalOpen;
@@ -240,6 +240,7 @@ export function CreateTransactionDialog({
         }
     }
 
+    /*
     const handleMagicDraft = (draft: DraftTransaction) => {
         setType(draft.type);
         if (draft.amount) setAmount(draft.amount.toString());
@@ -253,15 +254,16 @@ export function CreateTransactionDialog({
             const lowerGuess = draft.category_guess.toLowerCase();
             const cat = categories.find(c => c.name.toLowerCase().includes(lowerGuess));
             if (cat) {
-                setCategoryId(cat.id);
-                // Try subcategory guess if available
-                if (draft.category_guess) {
+                 setCategoryId(cat.id);
+                 // Try subcategory guess if available
+                 if (draft.category_guess) { 
                     // This is simple logic, can be improved
-                }
+                 }
             }
         }
         if (draft.note) setDescription(draft.note);
     };
+    */
 
     const isControlled = controlledOpen !== undefined;
 
@@ -279,11 +281,11 @@ export function CreateTransactionDialog({
                 </DialogTrigger>
             )}
 
-            <MagicDraftDrawer
-                open={magicOpen}
-                onOpenChange={setMagicOpen}
-                onDraft={handleMagicDraft}
-            />
+            {/* <MagicDraftDrawer 
+                open={magicOpen} 
+                onOpenChange={setMagicOpen} 
+                onDraft={handleMagicDraft} 
+            /> */}
 
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
@@ -293,8 +295,8 @@ export function CreateTransactionDialog({
                             <DialogDescription>
                                 {t("addTransactionDesc")}
                             </DialogDescription>
-                            <MagicDraftButton onClick={() => setMagicOpen(true)} />
                         </div>
+                        {/* <MagicDraftButton onClick={() => setMagicOpen(true)} /> */}
                     </div>
                 </DialogHeader>
 
