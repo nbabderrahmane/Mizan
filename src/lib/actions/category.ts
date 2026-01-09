@@ -603,10 +603,10 @@ export async function seedDefaultCategories(workspaceId: string): Promise<Catego
 
         // Default categories and subcategories
         const defaultStructure = [
-            { name: "Essentials", subs: ["Home", "Food", "Transport", "Health", "Utilities"] },
-            { name: "Lifestyle", subs: ["Entertainment", "Shopping", "Holidays", "Hobbies", "Other"] },
-            { name: "Income", subs: ["Salary", "Freelance", "Dividends", "Gifts", "Refunds"] },
-            { name: "Savings", subs: ["Emergency Fund", "Investments", "Projects", "Retirement"] },
+            { name: "Essentials", type: "expense", subs: ["Home", "Food", "Transport", "Health", "Utilities"] },
+            { name: "Lifestyle", type: "expense", subs: ["Entertainment", "Shopping", "Holidays", "Hobbies", "Other"] },
+            { name: "Income", type: "income", subs: ["Salary", "Freelance", "Dividends", "Gifts", "Refunds"] },
+            // Savings removed as requested
         ];
 
         for (let i = 0; i < defaultStructure.length; i++) {
@@ -618,6 +618,7 @@ export async function seedDefaultCategories(workspaceId: string): Promise<Catego
                 .insert({
                     workspace_id: workspaceId,
                     name: cat.name,
+                    type: cat.type,
                     sort_order: i,
                 })
                 .select()

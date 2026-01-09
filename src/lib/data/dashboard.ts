@@ -40,92 +40,51 @@ export async function getDashboardStats(
 
     const targetCurrency = workspace?.currency || "USD";
 
-    // 2. Fetch Accounts (Active)
-    const { data: accounts } = await supabase
+    // 2. Fetch Accounts with Transactions to calculate balance
+    // We calculate balance as opening_balance + sum(transactions.base_amount)
+    // We fetch this in one go to be efficient and correct.
+    // 2. Fetch Accounts and Transactions separately
+    // This mirrors the logic in account.ts which is known to work.
+    const { data: accounts, error: accError } = await supabase
         .from("accounts")
-        .select("id, name, base_currency, balance") // balance is opening balance + transactions sum usually, but here we might need to rely on what system thinks or recalculate. 
-        // Actually, 'balance' column might not be reliable if it's not auto-updated. 
-        // Let's assume 'get_balance_history' logic or 'available' computation is needed.
-        // For simplicity and correctness with "Account Detail" logic, we should probably fetch computed balances if possible. 
-        // However, standard 'accounts' table usually has 'opening_balance'. 
-        // 'account_balances' view or similar might be better? 
-        // Let's check 'get_account_balances' RPC or similar. 
-        // Re-reading 'account-detail-client.tsx': it uses `account.available` (if server provided) or `opening_balance`.
-        // Let's use a simpler approach: Fetch Accounts + Fetch ALL Transactions? No, too heavy.
-        // Let's use `get_balance_history` for "today" for each account? 
-        // BETTER: Use `get_account_balances` RPC if it exists, OR `accounts` table if `current_balance` is maintained.
-        // Checking `accounts` table schema via list_dir earlier didn't show it, but usually apps have calculated fields.
-        // Let's assume we can fetch `id, base_currency, current_balance` from a view or rely on `accounts` table having it. 
-        // Wait, `account-detail-client` used `transactions.reduce`. That implies no pre-calc balance?
-        // Let's stick to the previous RPC `get_dashboard_stats` logic but do it manually? 
-        // No, `get_dashboard_stats` used `total_balance` from SQL.
-        // Let's try to fetch active accounts and their current balances via `get_account_balances` RPC if available, or just use the raw accounts and sum their txns?
-        // Safe bet: Fetch `accounts` and assume they have a computed `balance` or we fetch stats per account.
-        // Actually, let's look at `getDashboardStats` original code: it used `rawStats.total_balance`.
-        // We will fetch ALL accounts, then for each account get its balance (maybe via `get_balance_history` for "today" which acts as current balance).
+        .select("id, name, base_currency, opening_balance")
         .eq("workspace_id", workspaceId)
         .eq("is_archived", false);
 
-    // To get accurate balances without fetching all TXs, let's use `get_balance_history` for each account for 'today' (range=7d, take last).
-    // Or better: Assume `get_account_list` or similar action returns balances.
-    // Let's fetch accounts first.
+    if (accError) {
+        // console.error("[Dashboard Debug] Error fetching accounts:", accError);
+    } else {
+        // console.log(`[Dashboard Debug] Fetched ${accounts?.length} accounts`);
+    }
+
+    // Fetch transactions for these accounts (or all workspace transactions to be safe)
+    const { data: transactions, error: txError } = await supabase
+        .from("transactions")
+        .select("account_id, base_amount")
+        .eq("workspace_id", workspaceId);
+
+    if (txError) {
+        // console.error("[Dashboard Debug] Error fetching transactions:", txError);
+    }
 
     let totalBalance = 0;
-    let availableCash = 0;
 
     if (accounts) {
-        // Parallelize balance fetching/calculation
-        const balancePromises = accounts.map(async (acc) => {
-            // We can re-use getBalanceHistory logic but for single point? 
-            // Or just fetch all transactions for account? 
-            // Let's try to find an optimized way. 
-            // `get_balance_history` RPC takes workspace_id.
-            // Let's just fetch all transactions for the workspace? No.
-            // Let's iterate accounts and get their balance via a lighter query if possible.
-            // Actually, let's trust the `accounts` view if it stands. 
-            // If `accounts` is just a table, we need to sum transactions.
-            // SQL is best for this. `select sum(base_amount) from transactions where account_id = X`.
+        const txMap = new Map<string, number>();
+        // Group transactions by account
+        if (transactions) {
+            for (const tx of transactions) {
+                const current = txMap.get(tx.account_id) || 0;
+                txMap.set(tx.account_id, current + Number(tx.base_amount));
+            }
+        }
 
-            const { data: txSum } = await supabase
-                .from("transactions")
-                .select("base_amount")
-                .eq("account_id", acc.id);
-
-            let accBalance = (acc as any).opening_balance || 0; // if column exists
-            // Wait, we don't know if opening_balance exists on type.
-            // Let's assume `get_dashboard_stats` RPC was doing it right but in mixed currency.
-            // We will replicate that SQL logic but in code with FX.
-
-            // Get balance for account:
-            const { data: balanceResult } = await supabase.rpc('get_account_balance', { p_account_id: acc.id });
-            const balance = Number(balanceResult || 0);
+        for (const acc of accounts) {
+            const txSum = txMap.get(acc.id) || 0;
+            const nativeBalance = Number(acc.opening_balance || 0) + txSum;
 
             const rate = await getFxRate(acc.base_currency, targetCurrency);
-            return { balance, rate };
-        });
-
-        // However, `get_account_balance` RPC might not exist.
-        // Let's check `listAccounts` implementation?
-        // It's in `lib/actions/account.ts`. Let's assume we can use `listAccounts` and it calculates balances.
-        // But we are in `dashboard.ts`. Importing `listAccounts` from actions might cause circular deps or issues?
-        // `listAccounts` is "use server". `dashboard.ts` is data layer.
-        // Let's use `supabase` directly.
-
-        // Alternative: Fetch `accounts` with `transactions(base_amount)`.
-        const { data: accountsWithTx } = await supabase
-            .from("accounts")
-            .select("id, name, base_currency, opening_balance, transactions(base_amount)")
-            .eq("workspace_id", workspaceId)
-            .eq("is_archived", false);
-
-        if (accountsWithTx) {
-            for (const acc of accountsWithTx) {
-                const txSum = (acc.transactions || []).reduce((sum: number, t: any) => sum + Number(t.base_amount), 0);
-                const nativeBalance = (acc.opening_balance || 0) + txSum;
-
-                const rate = await getFxRate(acc.base_currency, targetCurrency);
-                totalBalance += nativeBalance * rate;
-            }
+            totalBalance += nativeBalance * rate;
         }
     }
 

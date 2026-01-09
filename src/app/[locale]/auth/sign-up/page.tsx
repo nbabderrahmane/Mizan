@@ -44,8 +44,11 @@ function SignUpForm() {
     }
 
     return (
-        <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
+        <Card className="w-full max-w-md relative">
+            <div className="absolute right-4 top-4">
+                <LanguageSwitcher />
+            </div>
+            <CardHeader className="text-center pt-10">
                 <CardTitle className="text-2xl">{t("createAccount")}</CardTitle>
                 <CardDescription>
                     {t("signUpDescription")}
@@ -131,11 +134,7 @@ export default function SignUpPage() {
     const common = useTranslations("Common");
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 relative">
-            <div className="absolute top-4 right-4">
-                <LanguageSwitcher />
-            </div>
-
+        <div className="min-h-screen flex items-center justify-center p-4 relative bg-muted/30">
             <Suspense fallback={
                 <Card className="w-full max-w-md">
                     <CardHeader className="text-center">

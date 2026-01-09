@@ -14,7 +14,7 @@ export const getCachedDashboardStats = unstable_cache(
         const adminClient = createAdminClient();
         return fetchDashboardStats(workspaceId, adminClient);
     },
-    ['dashboard-stats'],
+    ['dashboard-stats-v3'],
     {
         revalidate: 60,
         tags: ['dashboard'],

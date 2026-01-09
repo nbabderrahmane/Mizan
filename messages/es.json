@@ -409,5 +409,17 @@
         "deleteDescription": "Esta acción no se puede deshacer. Esto eliminará permanentemente el espacio de trabajo y todos sus datos.",
         "typeToConfirm": "Escribe {name} para confirmar:",
         "deleting": "Eliminando..."
+    },
+    "Trainer": {
+        "dashboard": {
+            "title": "Efectivo Disponible",
+            "desc": "Esta es tu cantidad segura para gastar. Equivale al Saldo Total menos los Fondos Reservados (para facturas/metas)."
+        }
+    },
+    "Landing": {
+        "title": "Mizan",
+        "description": "Presupuesto compartido para familias y amigos",
+        "signIn": "Iniciar Sesión",
+        "signUp": "Registrarse"
     }
 }

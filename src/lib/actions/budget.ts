@@ -246,9 +246,15 @@ export async function listBudgets(workspaceId: string): Promise<BudgetResult<Bud
                 plan_config:budget_plan_configs(*)
             `)
             .eq("workspace_id", workspaceId)
+            .eq("workspace_id", workspaceId)
             .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            // console.error("[Budget Debug] Error fetching budgets:", error);
+            throw error;
+        }
+
+        // console.log(`[Budget Debug] Fetched ${data?.length} budgets for workspace ${workspaceId}`);
 
         // Debug: Log the first budget to see config structure
         if (data && data.length > 0) {

@@ -18,7 +18,8 @@ export async function updateSession(request: NextRequest, response?: NextRespons
                     cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     );
-                    supabaseResponse = NextResponse.next({
+                    // Do NOT overwrite supabaseResponse here, use the existing one (which might be a redirect)
+                    supabaseResponse = supabaseResponse || NextResponse.next({
                         request,
                     });
                     cookiesToSet.forEach(({ name, value, options }) =>
@@ -47,8 +48,8 @@ export async function updateSession(request: NextRequest, response?: NextRespons
     // Helper to check if a path corresponds to a public route, ignoring locale prefix
     const isPublicRoute = (path: string) => {
         const publicRoutes = ["/", "/auth/sign-in", "/auth/sign-up", "/auth/callback"];
-        // Strip the locale prefix if it exists (e.g., /en/auth/sign-in -> /auth/sign-in)
-        const pathWithoutLocale = path.replace(/^\/(en|fr)(\/|$)/, "/");
+        // Strip the locale prefix if it exists
+        const pathWithoutLocale = path.replace(/^\/(en|fr|es|ar)(\/|$)/, "/");
         // Ensure pathWithoutLocale is never empty string for root matching
         const normalizedPath = pathWithoutLocale === "" ? "/" : pathWithoutLocale;
         return publicRoutes.includes(normalizedPath);
@@ -57,7 +58,7 @@ export async function updateSession(request: NextRequest, response?: NextRespons
     if (!user && !isPublicRoute(pathname)) {
         const url = request.nextUrl.clone();
         // Redirect to sign-in, maintaining locale if present
-        const localeMatch = pathname.match(/^\/(en|fr)/);
+        const localeMatch = pathname.match(/^\/(en|fr|es|ar)/);
         const locale = localeMatch ? localeMatch[0] : "";
         url.pathname = `${locale}/auth/sign-in`;
         return NextResponse.redirect(url);
@@ -66,9 +67,9 @@ export async function updateSession(request: NextRequest, response?: NextRespons
     // Handle authenticated user routing
     if (user) {
         // Strip locale for logic checks
-        const pathWithoutLocale = pathname.replace(/^\/(en|fr)(\/|$)/, "/");
+        const pathWithoutLocale = pathname.replace(/^\/(en|fr|es|ar)(\/|$)/, "/");
         const normalizedPath = pathWithoutLocale === "" ? "/" : pathWithoutLocale;
-        const localeMatch = pathname.match(/^\/(en|fr)/);
+        const localeMatch = pathname.match(/^\/(en|fr|es|ar)/);
         const locale = localeMatch ? localeMatch[0] : "";
 
         const isAuthPage = normalizedPath.startsWith("/auth/");

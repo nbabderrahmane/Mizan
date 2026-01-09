@@ -415,7 +415,7 @@ export function CreateTransactionDialog({
                                     <SelectContent>
                                         {filteredCategories.map((cat) => (
                                             <SelectGroup key={cat.id}>
-                                                <SelectLabel className="text-xs text-muted-foreground px-2 py-1.5">{cat.name}</SelectLabel>
+                                                <SelectLabel className="text-sm font-bold text-foreground px-2 py-2">{cat.name}</SelectLabel>
                                                 {cat.subcategories.map((sub) => (
                                                     <SelectItem key={sub.id} value={sub.id} className="ps-4">
                                                         {sub.name}

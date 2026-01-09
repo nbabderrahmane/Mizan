@@ -41,8 +41,23 @@
         "createNew": "Create New",
         "createNewDesc": "Start fresh and manage your own shared budget. You can invite others later.",
         "createWorkspace": "Create Workspace",
-        "createYourWorkspace": "Create your workspace",
-        "workspaceName": "Workspace Name"
+        "createYourWorkspace": "Créez votre espace de travail",
+        "setupManually": "Configuration Manuelle",
+        "workspaceName": "Workspace Name",
+        "topBudgetsTitle": "Set your monthly baseline",
+        "topBudgetsDesc": "Configure your top 10 categories to get started in 2 minutes.",
+        "saveAndContinue": "Save & Continue",
+        "skipForNow": "Skip for now",
+        "recurringMonthly": "Recurring monthly",
+        "salary": "Salary / Income",
+        "rent": "Rent / Mortgage",
+        "groceries": "Groceries",
+        "utilities": "Utilities & Internet",
+        "transport": "Transportation",
+        "eatingOut": "Eating Out",
+        "subscriptions": "Subscriptions",
+        "debt": "Debt Payments",
+        "misc": "Misc / Buffer"
     },
     "Invitations": {
         "invalid": "Invalid Invitation",
@@ -410,5 +425,17 @@
         "deleteDescription": "This action cannot be undone. This will permanently delete the workspace and all its data including accounts, categories, transactions, and members.",
         "typeToConfirm": "Type {name} to confirm:",
         "deleting": "Deleting..."
+    },
+    "Trainer": {
+        "dashboard": {
+            "title": "Available Cash",
+            "desc": "This is your Safe-to-Spend amount. It equals Total Balance minus Reserved Funds (for bills/goals)."
+        }
+    },
+    "Landing": {
+        "title": "Mizan",
+        "description": "Shared budgeting for families and friends",
+        "signIn": "Sign In",
+        "signUp": "Sign Up"
     }
 }

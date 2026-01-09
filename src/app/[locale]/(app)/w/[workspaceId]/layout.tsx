@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getWorkspacesData } from "@/lib/data/workspace";
 import { AppShell } from "@/components/layout/app-shell";
 
+import { TrainerProvider } from "@/components/trainer/trainer-provider";
+
 export default async function AppLayout({
     children,
     params,
@@ -68,16 +70,18 @@ export default async function AppLayout({
     const categories = categoriesResult.data || [];
 
     return (
-        <AppShell
-            workspaces={workspaces.map((w) => ({ id: w.id, name: w.name }))}
-            currentWorkspaceId={currentWorkspaceId}
-            userEmail={user.email || ""}
-            isSupportAdmin={isSupportAdmin}
-            // Pass data for global transaction button
-            accounts={accounts}
-            categories={categories as any}
-        >
-            {children}
-        </AppShell>
+        <TrainerProvider workspaceId={currentWorkspaceId}>
+            <AppShell
+                workspaces={workspaces.map((w) => ({ id: w.id, name: w.name }))}
+                currentWorkspaceId={currentWorkspaceId}
+                userEmail={user.email || ""}
+                isSupportAdmin={isSupportAdmin}
+                // Pass data for global transaction button
+                accounts={accounts}
+                categories={categories as any}
+            >
+                {children}
+            </AppShell>
+        </TrainerProvider>
     );
 }

@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createLogger, createSafeError } from "@/lib/logger";
 import { createAccountSchema } from "@/lib/validations/account";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export type AccountResult<T = unknown> = {
     success: boolean;
@@ -79,6 +79,7 @@ export async function createAccount(
 
         revalidatePath(`/w/${workspaceId}/dashboard`);
         revalidatePath(`/w/${workspaceId}/settings/accounts`);
+        revalidateTag("dashboard");
         return { success: true, data: account };
 
     } catch (error) {

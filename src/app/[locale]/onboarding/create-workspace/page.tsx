@@ -87,6 +87,12 @@ export default function CreateWorkspacePage() {
                                     <SelectItem value="EUR">EUR (€)</SelectItem>
                                     <SelectItem value="GBP">GBP (£)</SelectItem>
                                     <SelectItem value="MAD">MAD (DH)</SelectItem>
+                                    <SelectItem value="AED">AED (د.إ)</SelectItem>
+                                    <SelectItem value="SAR">SAR (﷼)</SelectItem>
+                                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                                    <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                                    <SelectItem value="JPY">JPY (¥)</SelectItem>
+                                    <SelectItem value="CNY">CNY (¥)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
