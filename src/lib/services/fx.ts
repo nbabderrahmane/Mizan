@@ -10,7 +10,7 @@ const CACHE_TTL_HOURS = 12;
  * Get FX rate from cache or external API.
  * Returns the rate to convert 1 unit of `from` currency to `to` currency.
  */
-export async function getFxRate(from: string, to: string): Promise<number> {
+export async function getFxRate(from: string, to: string, supabaseClient?: any): Promise<number> {
     const logger = createLogger();
     logger.info("getFxRate called", { from, to });
 
@@ -19,7 +19,7 @@ export async function getFxRate(from: string, to: string): Promise<number> {
         return 1.0;
     }
 
-    const supabase = await createClient();
+    const supabase = supabaseClient || await createClient();
 
     // 1. Check cache
     const { data: cached } = await supabase

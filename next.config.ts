@@ -7,4 +7,11 @@ const nextConfig: NextConfig = {
     /* config options here */
 };
 
-export default withNextIntl(nextConfig);
+const withPWA = require("next-pwa")({
+    dest: "public",
+    register: true,
+    skipWaiting: true,
+    disable: true, // FORCE DISABLE to debug runtime error
+});
+
+export default withNextIntl(withPWA(nextConfig));

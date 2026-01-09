@@ -83,7 +83,7 @@ export async function getDashboardStats(
             const txSum = txMap.get(acc.id) || 0;
             const nativeBalance = Number(acc.opening_balance || 0) + txSum;
 
-            const rate = await getFxRate(acc.base_currency, targetCurrency);
+            const rate = await getFxRate(acc.base_currency, targetCurrency, supabase);
             totalBalance += nativeBalance * rate;
         }
     }
@@ -123,7 +123,7 @@ export async function getDashboardStats(
         // Convert and Aggregate
         for (const [key, amount] of Object.entries(sums)) {
             const [type, currency] = key.split("|");
-            const rate = await getFxRate(currency, targetCurrency);
+            const rate = await getFxRate(currency, targetCurrency, supabase);
             const converted = amount * rate;
 
             if (type === "income") monthlyIncome += converted;
@@ -154,7 +154,7 @@ export async function getDashboardStats(
             const currency = (tx.account as any)?.base_currency || targetCurrency;
             const amount = Math.abs(Number(tx.base_amount));
 
-            const rate = await getFxRate(currency, targetCurrency);
+            const rate = await getFxRate(currency, targetCurrency, supabase);
             const converted = amount * rate;
 
             categoryMap.set(catName, (categoryMap.get(catName) || 0) + converted);
@@ -187,7 +187,7 @@ export async function getDashboardStats(
         for (const entry of ledgerEntries) {
             const currency = (entry.budget as any)?.currency || targetCurrency;
             const val = Number(entry.amount);
-            const rate = await getFxRate(currency, targetCurrency);
+            const rate = await getFxRate(currency, targetCurrency, supabase);
             const converted = val * rate;
 
             if (entry.type === 'fund' || entry.type === 'adjust') reservedTotal += converted;

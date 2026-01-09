@@ -159,9 +159,10 @@ export async function saveTopBudgets(workspaceId: string, items: TopBudgetInput[
             if (existingBudget) {
                 // Update PAYG config
                 await supabase.from("budget_payg_configs").upsert({
+                    workspace_id: workspaceId,
                     budget_id: existingBudget.id,
                     monthly_cap: item.amount
-                });
+                }, { onConflict: "budget_id" });
                 // Update metadata for recurring
                 await supabase.from("budgets").update({
                     metadata: { recurring: item.recurring }
@@ -178,6 +179,7 @@ export async function saveTopBudgets(workspaceId: string, items: TopBudgetInput[
 
                 if (newBudget) {
                     await supabase.from("budget_payg_configs").insert({
+                        workspace_id: workspaceId,
                         budget_id: newBudget.id,
                         monthly_cap: item.amount
                     });
