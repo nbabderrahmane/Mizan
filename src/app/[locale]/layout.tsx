@@ -10,6 +10,12 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 export const metadata: Metadata = {
     title: "Mizan - Shared Budget",
     description: "A shared budgeting web app for families and friends",
+    manifest: "/manifest.json",
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "default",
+        title: "Mizan",
+    },
 };
 
 export default async function RootLayout({

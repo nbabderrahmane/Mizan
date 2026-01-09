@@ -35,6 +35,7 @@ import {
 import { WorkspaceSwitcher, WorkspaceItem } from "./workspace-switcher";
 import { signOut } from "@/lib/actions/auth";
 import { NotificationBell } from "./notification-bell";
+import { InstallPWAButton } from "./install-pwa-button";
 
 import { useTranslations } from "next-intl";
 
@@ -179,6 +180,9 @@ export function AppShell({
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
+
+                        {/* PWA Install Button */}
+                        <InstallPWAButton />
 
                         <form action={signOut}>
                             <button

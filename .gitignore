@@ -24,12 +24,7 @@
 .DS_Store
 *.pem
 
-# Local AI (Privacy & Bloat Prevention)
-public/models
-src/lib/local-ai
-src/components/ai
-src/workers/local-ai.worker.ts
-scripts/download_model.sh
+
 
 # debug
 npm-debug.log*

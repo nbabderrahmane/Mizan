@@ -43,6 +43,7 @@
         "createWorkspace": "Créer l'espace",
         "createYourWorkspace": "Créez votre espace de travail",
         "workspaceName": "Nom de l'Espace",
+        "setupManually": "Configuration Manuelle",
         "topBudgetsTitle": "Définissez votre base mensuelle",
         "topBudgetsDesc": "Configurez vos 10 catégories principales pour démarrer en 2 minutes.",
         "saveAndContinue": "Enregistrer & Continuer",

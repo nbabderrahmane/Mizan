@@ -42,9 +42,9 @@ import { createTransaction, getUniqueVendors } from "@/lib/actions/transaction";
 import { fetchFxRateAction } from "@/lib/services/fx";
 import { BudgetWithConfigs } from "@/lib/validations/budget";
 import { useLocale, useTranslations } from "next-intl";
-// import { MagicDraftButton } from "@/components/ai/MagicDraftButton";
-// import { MagicDraftDrawer } from "@/components/ai/MagicDraftDrawer";
-// import { DraftTransaction } from "@/lib/local-ai/types";
+import { MagicDraftButton } from "@/components/ai/MagicDraftButton";
+import { MagicDraftDrawer } from "@/components/ai/MagicDraftDrawer";
+import { DraftTransaction } from "@/lib/local-ai/types";
 
 interface Account {
     id: string;
@@ -100,7 +100,34 @@ export function CreateTransactionDialog({
     const locale = useLocale();
     const router = useRouter();
     const [internalOpen, setInternalOpen] = useState(false);
-    // const [magicOpen, setMagicOpen] = useState(false);
+    const [magicOpen, setMagicOpen] = useState(false);
+
+    // Feature Flag: Only enable locally or if explicitly set
+    const ENABLE_LOCAL_AI = process.env.NEXT_PUBLIC_ENABLE_LOCAL_AI === 'true';
+
+    const handleMagicDraft = (draft: DraftTransaction) => {
+        setType(draft.type);
+        if (draft.amount) setAmount(draft.amount.toString());
+        if (draft.currency) setCurrency(draft.currency);
+        if (draft.vendor) {
+            setVendor(draft.vendor);
+            setTitle(draft.vendor);
+        }
+        if (draft.category_guess) {
+            // Simple match by name for V1
+            const lowerGuess = draft.category_guess.toLowerCase();
+            const cat = categories.find(c => c.name.toLowerCase().includes(lowerGuess));
+            if (cat) {
+                setCategoryId(cat.id);
+                // Try subcategory guess if available
+                if (draft.category_guess) {
+                    // This is simple logic, can be improved
+                }
+            }
+        }
+        if (draft.note) setDescription(draft.note);
+        setMagicOpen(false);
+    };
 
     const open = controlledOpen ?? internalOpen;
     const setOpen = setControlledOpen ?? setInternalOpen;
@@ -281,11 +308,13 @@ export function CreateTransactionDialog({
                 </DialogTrigger>
             )}
 
-            {/* <MagicDraftDrawer 
-                open={magicOpen} 
-                onOpenChange={setMagicOpen} 
-                onDraft={handleMagicDraft} 
-            /> */}
+            {ENABLE_LOCAL_AI && (
+                <MagicDraftDrawer
+                    open={magicOpen}
+                    onOpenChange={setMagicOpen}
+                    onDraft={handleMagicDraft}
+                />
+            )}
 
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
@@ -296,7 +325,9 @@ export function CreateTransactionDialog({
                                 {t("addTransactionDesc")}
                             </DialogDescription>
                         </div>
-                        {/* <MagicDraftButton onClick={() => setMagicOpen(true)} /> */}
+                        {ENABLE_LOCAL_AI && (
+                            <MagicDraftButton onClick={() => setMagicOpen(true)} />
+                        )}
                     </div>
                 </DialogHeader>
 
