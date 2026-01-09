@@ -375,3 +375,18 @@ export async function getUniqueVendors(workspaceId: string): Promise<string[]> {
     if (!data) return [];
     return data.map(d => d.name);
 }
+
+export async function countTransactions(workspaceId: string): Promise<number> {
+    const supabase = await createClient();
+    const { count, error } = await supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true })
+        .eq("workspace_id", workspaceId);
+
+    if (error) {
+        console.error("Error counting transactions:", error);
+        return 0;
+    }
+
+    return count || 0;
+}

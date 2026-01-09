@@ -251,12 +251,18 @@ export function CreateTransactionDialog({
                     )}
                 </DialogTrigger>
             )}
+
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{t("addTransaction")}</DialogTitle>
-                    <DialogDescription>
-                        {t("addTransactionDesc")}
-                    </DialogDescription>
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <DialogTitle>{t("addTransaction")}</DialogTitle>
+                            <DialogDescription>
+                                {t("addTransactionDesc")}
+                            </DialogDescription>
+                        </div>
+
+                    </div>
                 </DialogHeader>
 
                 <div className="grid gap-6 py-4">
