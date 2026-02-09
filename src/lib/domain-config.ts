@@ -24,16 +24,7 @@ export interface DomainConfig {
  * Add new domains here to enable custom branding and auto-join.
  */
 export const DOMAIN_CONFIGS: Record<string, DomainConfig> = {
-    "yolafresh.com": {
-        theme: "yolafresh",
-        workspaceName: "Yola Fresh",
-        autoJoinRole: "VIEWER",
-    },
-    "weprogress.com": {
-        theme: "yolafresh",
-        workspaceName: "Yola Fresh",
-        autoJoinRole: "VIEWER",
-    },
+    // Entries removed to revert to Mizan defaults
 };
 
 /**

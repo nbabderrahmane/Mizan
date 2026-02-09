@@ -195,10 +195,19 @@ export async function signInWithGoogle(redirectTo?: string): Promise<AuthResult>
         // 3. Vercel deployment URL (VERCEL_URL)
         // 4. Hardcoded staging URL (safety net for staging)
         // 5. Localhost (dev only)
-        const origin = redirectTo
+        let origin = redirectTo
             || process.env.NEXT_PUBLIC_APP_URL
             || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
             || "https://mizanstaging.vercel.app";
+
+        // Remove locale from origin if present to avoid /fr/auth/callback 404
+        // The auth callback route is global at /auth/callback (not localized)
+        origin = origin.replace(/\/(fr|en|ar)$/, "");
+
+        // Ensure manual staging override if needed
+        if (origin.includes("mizanstaging.vercel.app")) {
+            origin = "https://mizanstaging.vercel.app";
+        }
 
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: "google",

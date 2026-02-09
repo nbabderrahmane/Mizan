@@ -612,7 +612,7 @@ export async function seedDefaultCategories(workspaceId: string): Promise<Catego
 
         const isBusinessWorkspace = workspace?.type === "business";
 
-        // Business categories (Yola Fresh style)
+        // Business categories (Business style)
         const businessStructure = [
             {
                 key: "achats",
