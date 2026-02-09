@@ -28,15 +28,11 @@ export const DOMAIN_CONFIGS: Record<string, DomainConfig> = {
         theme: "yolafresh",
         workspaceName: "Yola Fresh",
         autoJoinRole: "VIEWER",
-        appTitle: "Yola Fresh",
-        logoPath: "/yola-fresh-logo-v3.png",
     },
     "weprogress.com": {
         theme: "yolafresh",
         workspaceName: "Yola Fresh",
         autoJoinRole: "VIEWER",
-        appTitle: "Yola Fresh",
-        logoPath: "/yola-fresh-logo-v3.png",
     },
 };
 

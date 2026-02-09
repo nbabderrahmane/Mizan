@@ -117,7 +117,7 @@ function SignInForm() {
                     variant="outline"
                     type="button"
                     className="w-full"
-                    onClick={() => signInWithGoogle()}
+                    onClick={() => signInWithGoogle(window.location.origin)}
                     disabled={isLoading}
                 >
                     <svg className="me-2 h-4 w-4" viewBox="0 0 24 24">

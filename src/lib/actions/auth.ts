@@ -183,13 +183,13 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
 /**
  * Sign in with Google (OAuth).
  */
-export async function signInWithGoogle(): Promise<AuthResult> {
+export async function signInWithGoogle(redirectTo?: string): Promise<AuthResult> {
     const logger = createLogger();
     logger.info("signInWithGoogle action started", { action: "signInWithGoogle" });
 
     try {
         const supabase = await createClient();
-        const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const origin = redirectTo || process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: "google",
@@ -356,7 +356,7 @@ export async function forgotPassword(formData: FormData): Promise<AuthResult> {
         const supabase = await createClient();
 
         // Use a generic origin for the reset link
-        const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const origin = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
             redirectTo: `${origin}/auth/reset-password`,
