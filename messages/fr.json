@@ -464,8 +464,8 @@
         }
     },
     "Landing": {
-        "title": "Yola Fresh",
-        "description": "Gestion des caisses et dépenses opérationnelles",
+        "title": "Mizan",
+        "description": "Budget partagé pour familles et amis",
         "signIn": "Se connecter",
         "signUp": "S'inscrire"
     },
