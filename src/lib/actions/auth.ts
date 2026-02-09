@@ -189,7 +189,16 @@ export async function signInWithGoogle(redirectTo?: string): Promise<AuthResult>
 
     try {
         const supabase = await createClient();
-        const origin = redirectTo || process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+        // Fallback hierarchy:
+        // 1. Client-provided param (most accurate)
+        // 2. Explicit env var (NEXT_PUBLIC_APP_URL)
+        // 3. Vercel deployment URL (VERCEL_URL)
+        // 4. Hardcoded staging URL (safety net for staging)
+        // 5. Localhost (dev only)
+        const origin = redirectTo
+            || process.env.NEXT_PUBLIC_APP_URL
+            || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined)
+            || "https://mizanstaging.vercel.app";
 
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: "google",
