@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 // Account types
-export const accountTypes = ["bank", "cash", "savings", "investment"] as const;
+export const personalAccountTypes = ["bank", "cash", "savings", "investment"] as const;
+export const businessAccountTypes = ["bank", "cash", "purchase", "g_a", "logistics"] as const;
+export const accountTypes = [...new Set([...personalAccountTypes, ...businessAccountTypes])] as const;
 export type AccountType = (typeof accountTypes)[number];
 
 // Common currencies (ISO 4217)

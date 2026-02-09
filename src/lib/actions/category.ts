@@ -20,6 +20,7 @@ export type Category = {
     id: string;
     workspace_id: string;
     name: string;
+    key?: string | null; // Canonical key for i18n translation
     type?: "income" | "expense" | "transfer" | null;
     sort_order: number;
     created_at: string;
@@ -30,6 +31,7 @@ export type Subcategory = {
     workspace_id: string;
     category_id: string;
     name: string;
+    key?: string | null; // Canonical key for i18n translation
     created_at: string;
 };
 
@@ -601,23 +603,122 @@ export async function seedDefaultCategories(workspaceId: string): Promise<Catego
             };
         }
 
-        // Default categories and subcategories
-        const defaultStructure = [
-            { name: "Essentials", type: "expense", subs: ["Home", "Food", "Transport", "Health", "Utilities"] },
-            { name: "Lifestyle", type: "expense", subs: ["Entertainment", "Shopping", "Holidays", "Hobbies", "Other"] },
-            { name: "Income", type: "income", subs: ["Salary", "Freelance", "Dividends", "Gifts", "Refunds"] },
-            // Savings removed as requested
+        // Get workspace type to determine category structure
+        const { data: workspace } = await supabase
+            .from("workspaces")
+            .select("type")
+            .eq("id", workspaceId)
+            .single();
+
+        const isBusinessWorkspace = workspace?.type === "business";
+
+        // Business categories (Yola Fresh style)
+        const businessStructure = [
+            {
+                key: "achats",
+                name: "Achats",
+                type: "expense",
+                subs: [
+                    { key: "achat_matiere", name: "Achat Matière" },
+                    { key: "frais_manutention", name: "Frais de Manutention" }
+                ]
+            },
+            {
+                key: "transport",
+                name: "Transport",
+                type: "expense",
+                subs: [
+                    { key: "transport_mm", name: "Caisse Transport MM" },
+                    { key: "transport_lm", name: "Caisse Transport LM" }
+                ]
+            },
+            {
+                key: "ga",
+                name: "G&A",
+                type: "expense",
+                subs: [
+                    { key: "ga_office", name: "G&A Office" },
+                    { key: "ga_warehouse", name: "G&A Warehouse" }
+                ]
+            },
+            {
+                key: "income",
+                name: "Revenus",
+                type: "income",
+                subs: [
+                    { key: "ventes", name: "Ventes" },
+                    { key: "autres_revenus", name: "Autres Revenus" }
+                ]
+            },
         ];
+
+        // Default personal categories with i18n keys
+        // Harmonized with CANONICAL_MAP in onboarding.ts
+        const personalStructure = [
+            {
+                key: "essentials",
+                name: "Essentials",
+                type: "expense",
+                subs: [
+                    { key: "home", name: "Home" },
+                    { key: "rent", name: "Rent / Mortgage" },
+                    { key: "groceries", name: "Groceries" },
+                    { key: "food", name: "Food" },
+                    { key: "transport", name: "Transportation" },
+                    { key: "utilities", name: "Utilities & Internet" },
+                    { key: "health", name: "Health" }
+                ]
+            },
+            {
+                key: "lifestyle",
+                name: "Lifestyle",
+                type: "expense",
+                subs: [
+                    { key: "eating_out", name: "Eating Out" },
+                    { key: "subscriptions", name: "Subscriptions" },
+                    { key: "entertainment", name: "Entertainment" },
+                    { key: "shopping", name: "Shopping" },
+                    { key: "holidays", name: "Holidays" },
+                    { key: "hobbies", name: "Hobbies" },
+                    { key: "other", name: "Other" }
+                ]
+            },
+            {
+                key: "financial",
+                name: "Financial",
+                type: "expense",
+                subs: [
+                    { key: "debt", name: "Debt Payments" },
+                    { key: "savings", name: "Savings" },
+                    { key: "investments", name: "Investments" }
+                ]
+            },
+            {
+                key: "income",
+                name: "Income",
+                type: "income",
+                subs: [
+                    { key: "salary", name: "Salary" },
+                    { key: "freelance", name: "Freelance" },
+                    { key: "dividends", name: "Dividends" },
+                    { key: "gifts", name: "Gifts" },
+                    { key: "refunds", name: "Refunds" }
+                ]
+            },
+        ];
+
+        const defaultStructure = isBusinessWorkspace ? businessStructure : personalStructure;
 
         for (let i = 0; i < defaultStructure.length; i++) {
             const cat = defaultStructure[i];
 
-            // Create category
+            // Create category with key
             const { data: category, error: catError } = await supabase
                 .from("categories")
                 .insert({
                     workspace_id: workspaceId,
                     name: cat.name,
+                    key: cat.key,
                     type: cat.type,
                     sort_order: i,
                 })
@@ -632,12 +733,13 @@ export async function seedDefaultCategories(workspaceId: string): Promise<Catego
                 continue;
             }
 
-            // Create subcategories
-            for (const subName of cat.subs) {
+            // Create subcategories with keys
+            for (const sub of cat.subs) {
                 await supabase.from("subcategories").insert({
                     workspace_id: workspaceId,
                     category_id: category.id,
-                    name: subName,
+                    name: sub.name,
+                    key: sub.key,
                 });
             }
         }

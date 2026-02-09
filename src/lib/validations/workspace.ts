@@ -11,6 +11,7 @@ export const createWorkspaceSchema = z.object({
         .min(3, "Currency code is required")
         .max(3, "Currency code must be 3 characters")
         .trim(),
+    type: z.enum(["personal", "business"]).default("personal"),
 });
 
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;

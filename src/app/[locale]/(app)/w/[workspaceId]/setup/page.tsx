@@ -17,7 +17,7 @@ export default async function SetupPage({ params }: PageProps) {
     }
 
     // Check existing data
-    const [categoriesResult, accountsResult] = await Promise.all([
+    const [categoriesResult, accountsResult, workspaceResult] = await Promise.all([
         supabase
             .from("categories")
             .select("id", { count: "exact", head: true })
@@ -27,16 +27,23 @@ export default async function SetupPage({ params }: PageProps) {
             .select("id", { count: "exact", head: true })
             .eq("workspace_id", workspaceId)
             .eq("is_archived", false),
+        supabase
+            .from("workspaces")
+            .select("type")
+            .eq("id", workspaceId)
+            .single(),
     ]);
 
     const hasCategories = (categoriesResult.count ?? 0) > 0;
     const hasAccounts = (accountsResult.count ?? 0) > 0;
+    const workspaceType = (workspaceResult as any).data?.type || "personal";
 
     return (
         <SetupPageClient
             workspaceId={workspaceId}
             hasCategories={hasCategories}
             hasAccounts={hasAccounts}
+            workspaceType={workspaceType}
         />
     );
 }

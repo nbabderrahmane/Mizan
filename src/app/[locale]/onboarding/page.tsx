@@ -13,6 +13,7 @@ import {
 import { PlusCircle, Users, ArrowRight, LogOut } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { getTranslations } from "next-intl/server";
+import { getDomainConfig } from "@/lib/domain-config";
 
 export default async function OnboardingPage() {
     const t = await getTranslations("Onboarding");
@@ -20,6 +21,9 @@ export default async function OnboardingPage() {
     const auth = await getTranslations("Auth");
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
+    const domainConfig = user?.email ? getDomainConfig(user.email) : undefined;
+    const appName = domainConfig?.appTitle || "Mizan";
 
     if (!user) {
         redirect("/auth/sign-in");
@@ -45,7 +49,7 @@ export default async function OnboardingPage() {
         <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="text-center space-y-2">
-                    <h1 className="text-4xl font-extrabold tracking-tight">{t("welcome")}</h1>
+                    <h1 className="text-4xl font-extrabold tracking-tight">{t("welcome", { name: appName })}</h1>
                     <p className="text-muted-foreground text-lg">
                         {t("welcomeDescription")}
                     </p>

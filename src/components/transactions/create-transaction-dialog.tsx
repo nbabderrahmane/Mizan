@@ -39,12 +39,11 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { createTransaction, getUniqueVendors } from "@/lib/actions/transaction";
+import { uploadAttachment } from "@/lib/actions/storage";
 import { fetchFxRateAction } from "@/lib/services/fx";
 import { BudgetWithConfigs } from "@/lib/validations/budget";
 import { useLocale, useTranslations } from "next-intl";
-import { MagicDraftButton } from "@/components/ai/MagicDraftButton";
-import { MagicDraftDrawer } from "@/components/ai/MagicDraftDrawer";
-import { DraftTransaction } from "@/lib/local-ai/types";
+import { getCategoryDisplayName } from "@/lib/utils/category-i18n";
 
 interface Account {
     id: string;
@@ -96,42 +95,14 @@ export function CreateTransactionDialog({
     onOpenChange: setControlledOpen,
 }: CreateTransactionDialogProps) {
     const t = useTranslations("Transactions");
+    const catT = useTranslations("Categories");
     const common = useTranslations("Common");
     const locale = useLocale();
     const router = useRouter();
     const [internalOpen, setInternalOpen] = useState(false);
-    const [magicOpen, setMagicOpen] = useState(false);
-
-    // Feature Flag: Only enable locally or if explicitly set
-    const ENABLE_LOCAL_AI = process.env.NEXT_PUBLIC_ENABLE_LOCAL_AI === 'true';
-
-    const handleMagicDraft = (draft: DraftTransaction) => {
-        setType(draft.type);
-        if (draft.amount) setAmount(draft.amount.toString());
-        if (draft.currency) setCurrency(draft.currency);
-        if (draft.vendor) {
-            setVendor(draft.vendor);
-            setTitle(draft.vendor);
-        }
-        if (draft.category_guess) {
-            // Simple match by name for V1
-            const lowerGuess = draft.category_guess.toLowerCase();
-            const cat = categories.find(c => c.name.toLowerCase().includes(lowerGuess));
-            if (cat) {
-                setCategoryId(cat.id);
-                // Try subcategory guess if available
-                if (draft.category_guess) {
-                    // This is simple logic, can be improved
-                }
-            }
-        }
-        if (draft.note) setDescription(draft.note);
-        setMagicOpen(false);
-    };
 
     const open = controlledOpen ?? internalOpen;
     const setOpen = setControlledOpen ?? setInternalOpen;
-
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -153,6 +124,10 @@ export function CreateTransactionDialog({
     // Vendor Autocomplete
     const [vendors, setVendors] = useState<string[]>([]);
     const [openVendor, setOpenVendor] = useState(false);
+
+    // Attachments
+    const [attachmentPaths, setAttachmentPaths] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
     // Filtered Categories based on transaction type
     const filteredCategories = categories.filter(c => !c.type || c.type === type);
@@ -231,6 +206,11 @@ export function CreateTransactionDialog({
             return;
         }
 
+        if (isUploading) {
+            setError(t("waitUpload"));
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
@@ -249,7 +229,7 @@ export function CreateTransactionDialog({
         if (transferAccountId) formData.append("transferAccountId", transferAccountId);
         if (isForeign) formData.append("fxRate", fxRate);
 
-        const result = await createTransaction(workspaceId, formData);
+        const result = await createTransaction(workspaceId, formData, attachmentPaths);
 
         setIsLoading(true); // Wait for refresh
 
@@ -260,6 +240,7 @@ export function CreateTransactionDialog({
             setDescription("");
             setTitle("");
             setVendor("");
+            setAttachmentPaths([]);
             setIsLoading(false);
         } else {
             setError(result.error?.message || common("error"));
@@ -308,27 +289,13 @@ export function CreateTransactionDialog({
                 </DialogTrigger>
             )}
 
-            {ENABLE_LOCAL_AI && (
-                <MagicDraftDrawer
-                    open={magicOpen}
-                    onOpenChange={setMagicOpen}
-                    onDraft={handleMagicDraft}
-                />
-            )}
 
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <DialogTitle>{t("addTransaction")}</DialogTitle>
-                            <DialogDescription>
-                                {t("addTransactionDesc")}
-                            </DialogDescription>
-                        </div>
-                        {ENABLE_LOCAL_AI && (
-                            <MagicDraftButton onClick={() => setMagicOpen(true)} />
-                        )}
-                    </div>
+                    <DialogTitle>{t("addTransaction")}</DialogTitle>
+                    <DialogDescription>
+                        {t("addTransactionDesc")}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-6 py-4">
@@ -487,10 +454,10 @@ export function CreateTransactionDialog({
                                     <SelectContent>
                                         {filteredCategories.map((cat) => (
                                             <SelectGroup key={cat.id}>
-                                                <SelectLabel className="text-sm font-bold text-foreground px-2 py-2">{cat.name}</SelectLabel>
+                                                <SelectLabel className="text-sm font-bold text-foreground px-2 py-2">{getCategoryDisplayName(cat, (k) => catT(`keys.${k}`))}</SelectLabel>
                                                 {cat.subcategories.map((sub) => (
                                                     <SelectItem key={sub.id} value={sub.id} className="ps-4">
-                                                        {sub.name}
+                                                        {getCategoryDisplayName(sub, (k) => catT(`keys.${k}`))}
                                                     </SelectItem>
                                                 ))}
                                             </SelectGroup>
@@ -571,6 +538,51 @@ export function CreateTransactionDialog({
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <Label>{t("attachments")}</Label>
+                        <div className="flex flex-col gap-2">
+                            <Input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                multiple
+                                onChange={async (e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        setIsUploading(true);
+                                        const paths: string[] = [];
+                                        for (const file of Array.from(e.target.files)) {
+                                            const formData = new FormData();
+                                            formData.append("file", file);
+                                            const res = await uploadAttachment(formData);
+                                            if (res.success && res.filePath) {
+                                                paths.push(res.filePath);
+                                            } else {
+                                                // Handle error (maybe toast)
+                                                console.error("Upload failed", res.error);
+                                            }
+                                        }
+                                        setAttachmentPaths(prev => [...prev, ...paths]);
+                                        setIsUploading(false);
+                                        e.target.value = ""; // Reset input
+                                    }
+                                }}
+                            />
+                            {isUploading && <p className="text-xs text-muted-foreground animate-pulse">{t("uploading")}</p>}
+                            <div className="flex flex-wrap gap-2">
+                                {attachmentPaths.map((path, idx) => (
+                                    <div key={idx} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
+                                        <span className="truncate max-w-[150px]">{path.split('/').pop()}</span>
+                                        <button
+                                            onClick={() => setAttachmentPaths(prev => prev.filter((_, i) => i !== idx))}
+                                            className="text-muted-foreground hover:text-rose-500"
+                                        >
+                                            &times;
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
                     {error && (
                         <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-sm text-rose-600 font-medium">
                             {error}
@@ -588,6 +600,6 @@ export function CreateTransactionDialog({
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 }

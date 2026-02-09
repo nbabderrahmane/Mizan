@@ -16,6 +16,7 @@ export type Workspace = {
     name: string;
     created_by: string;
     currency: string;
+    type: "personal" | "business";
     created_at: string;
 };
 
@@ -40,6 +41,7 @@ export async function createWorkspace(
         const rawData = {
             name: formData.get("name") as string,
             currency: formData.get("currency") as string,
+            type: formData.get("type") as "personal" | "business" || "personal",
         };
 
         // Validate input
@@ -96,12 +98,15 @@ export async function createWorkspace(
             };
         }
 
-        // UPDATE CURRENCY
-        // The RPC doesn't accept currency, so we update it immediately after creation.
+        // UPDATE CURRENCY AND TYPE
+        // The RPC doesn't accept currency/type, so we update it immediately after creation.
         // The user is the OWNER, so RLS allows update.
         const { error: updateError } = await supabase
             .from("workspaces")
-            .update({ currency: validatedData.currency })
+            .update({
+                currency: validatedData.currency,
+                type: validatedData.type
+            })
             .eq("id", workspaceId);
 
         if (updateError) {

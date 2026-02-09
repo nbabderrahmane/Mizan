@@ -21,6 +21,7 @@ export type Account = {
     is_archived: boolean;
     last_reconciled_at: string | null;
     created_at: string;
+    owner_user_id?: string | null;
 };
 
 // Added for compatibility with existing code
@@ -207,11 +208,11 @@ export async function getAccounts(workspaceId: string): Promise<AccountResult<Ac
                 .filter(tx => tx.account_id === account.id)
                 .reduce((sum, tx) => sum + Number(tx.base_amount), 0);
 
-            const computedBalance = Number(account.opening_balance) + txSum;
-
+            // Map owner_user_id if present (it should be since we select *)
             return {
                 ...account,
-                available: computedBalance
+                available: Number(account.opening_balance) + txSum,
+                owner_user_id: account.owner_user_id
             };
         });
 
@@ -255,5 +256,44 @@ export async function reconcileAccount(accountId: string, actualBalance: number)
     } catch (error) {
         logger.error("Failed to reconcile account", error as Error, { accountId });
         return { success: false, error: createSafeError("Failed to reconcile", logger.correlationId) };
+    }
+}
+
+export async function assignAccountOwner(
+    accountId: string,
+    userId: string | null,
+    workspaceId: string
+): Promise<AccountResult<void>> {
+    const logger = createLogger();
+    try {
+        const supabase = await createClient();
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Unauthorized");
+
+        // Verify manager role
+        const { data: member } = await supabase
+            .from("workspace_members")
+            .select("role")
+            .eq("workspace_id", workspaceId)
+            .eq("user_id", user.id)
+            .single();
+
+        if (!member || (member.role !== "OWNER" && member.role !== "MANAGER")) {
+            return { success: false, error: createSafeError("Only Managers can assign account owners", logger.correlationId) };
+        }
+
+        const { error } = await supabase
+            .from("accounts")
+            .update({ owner_user_id: userId } as any)
+            .eq("id", accountId);
+
+        if (error) throw error;
+
+        revalidatePath(`/w/${workspaceId}/settings/accounts`);
+        return { success: true };
+    } catch (error) {
+        logger.error("Failed to assign account owner", error as Error, { accountId, userId: userId || undefined });
+        return { success: false, error: createSafeError("Failed to assign owner", logger.correlationId) };
     }
 }

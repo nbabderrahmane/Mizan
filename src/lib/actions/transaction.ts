@@ -38,7 +38,8 @@ export type Transaction = {
 
 export async function createTransaction(
     workspaceId: string,
-    formData: FormData
+    formData: FormData,
+    attachmentPaths: string[] = [] // Optional: Paths returned from storage upload
 ): Promise<TransactionResult<Transaction | Transaction[]>> {
     const logger = createLogger();
 
@@ -200,6 +201,25 @@ export async function createTransaction(
                     base_amount: validated.amount, // Inflow
                 };
                 await supabase.from("transactions").insert(targetTxData);
+            }
+        }
+
+        // Insert Attachments if any
+        if (attachmentPaths && attachmentPaths.length > 0) {
+            const attachmentData = attachmentPaths.map(path => ({
+                transaction_id: transaction.id,
+                file_path: path,
+                file_type: path.split('.').pop() === 'pdf' ? 'application/pdf' : 'image/jpeg', // Simple inference
+                uploaded_by: user.id
+            }));
+
+            const { error: attachError } = await supabase
+                .from("transaction_attachments")
+                .insert(attachmentData);
+
+            if (attachError) {
+                logger.error("Failed to link attachments", attachError, { transactionId: transaction.id });
+                // Non-blocking error, but good to log. 
             }
         }
 

@@ -16,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { CategoryWithSubcategories } from "@/lib/actions/category";
 import { useLocale, useTranslations } from "next-intl";
+import { getCategoryDisplayName } from "@/lib/utils/category-i18n";
 
 interface CreateBudgetWizardProps {
     open: boolean;
@@ -31,6 +32,7 @@ const CURRENCIES = ["USD", "EUR", "GBP", "MAD", "AED"];
 
 export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, accounts = [], workspaceCurrency = "USD", onSuccess }: CreateBudgetWizardProps) {
     const t = useTranslations("Budgets");
+    const catT = useTranslations("Categories");
     const common = useTranslations("Common");
     const locale = useLocale();
     const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +43,8 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
     const [subcategoryId, setSubcategoryId] = useState("");
     const [amount, setAmount] = useState("");
     const [type, setType] = useState<"PAYG" | "PLAN_SPEND">("PAYG");
-    const [currency, setCurrency] = useState(workspaceCurrency);
+    // Default to workspace currency, if not valid fall back to USD
+    const [currency, setCurrency] = useState(workspaceCurrency || "USD");
 
     // PAYG Recurring
     const [isRecurring, setIsRecurring] = useState(false);
@@ -142,11 +145,11 @@ export function CreateBudgetWizard({ open, setOpen, workspaceId, categories, acc
                                     {categories.map((cat) => (
                                         <div key={cat.id}>
                                             <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground uppercase bg-muted/30">
-                                                {cat.name}
+                                                {getCategoryDisplayName(cat, (k) => catT(`keys.${k}`))}
                                             </div>
                                             {cat.subcategories.map((sub) => (
                                                 <SelectItem key={sub.id} value={sub.id} className="pl-6">
-                                                    {sub.name}
+                                                    {getCategoryDisplayName(sub, (k) => catT(`keys.${k}`))}
                                                 </SelectItem>
                                             ))}
                                         </div>

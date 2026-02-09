@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { DomainThemeProvider } from "@/components/providers/domain-theme-provider";
 
 export const metadata: Metadata = {
     title: "Mizan - Shared Budget",
@@ -45,12 +46,15 @@ export default async function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <NextIntlClientProvider messages={messages} locale={locale}>
-                        {children}
-                    </NextIntlClientProvider>
+                    <DomainThemeProvider>
+                        <NextIntlClientProvider messages={messages} locale={locale}>
+                            {children}
+                        </NextIntlClientProvider>
+                    </DomainThemeProvider>
                     <Toaster />
                 </ThemeProvider>
             </body>
         </html>
     );
 }
+

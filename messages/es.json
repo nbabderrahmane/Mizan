@@ -157,7 +157,36 @@
         "transactionType": "Tipo de Transacción",
         "selectType": "Seleccionar tipo",
         "typeHint": "Utilizado para filtrar categorías en los formularios de transacciones.",
-        "icon": "Icono"
+        "icon": "Icono",
+        "keys": {
+            "essentials": "Esenciales",
+            "lifestyle": "Estilo de vida",
+            "income": "Ingresos",
+            "home": "Hogar",
+            "food": "Alimentación",
+            "transport": "Transporte",
+            "health": "Salud",
+            "utilities": "Servicios",
+            "entertainment": "Entretenimiento",
+            "shopping": "Compras",
+            "holidays": "Vacaciones",
+            "hobbies": "Pasatiempos",
+            "other": "Otros",
+            "salary": "Salario",
+            "freelance": "Freelance",
+            "dividends": "Dividendos",
+            "gifts": "Regalos",
+            "refunds": "Reembolsos",
+            "rent": "Alquiler / Hipoteca",
+            "groceries": "Supermercado",
+            "eating_out": "Restaurantes",
+            "subscriptions": "Suscripciones",
+            "debt": "Pago de Deudas",
+            "misc": "Varios",
+            "financial": "Finanzas",
+            "savings": "Ahorros",
+            "investments": "Inversiones"
+        }
     },
     "Transactions": {
         "title": "Transacciones",
@@ -421,5 +450,30 @@
         "description": "Presupuesto compartido para familias y amigos",
         "signIn": "Iniciar Sesión",
         "signUp": "Registrarse"
+    },
+    "RoleSelection": {
+        "welcomeBack": "Bienvenido de nuevo, {name}",
+        "selectAccount": "Selecciona una cuenta para continuar.",
+        "supportAdmin": "Admin de Soporte",
+        "supportAdminDesc": "Accede a estadísticas globales, gestiona usuarios y consulta metadatos.",
+        "enterAdmin": "Entrar al Panel de Admin",
+        "personalWorkspaces": "Espacios Personales",
+        "personalWorkspacesDesc": "Gestiona tus presupuestos compartidos, transacciones e informes financieros.",
+        "enterWorkspaces": "Entrar a los Espacios"
+    },
+    "Setup": {
+        "title": "Configuración Rápida",
+        "description": "Preparemos tu espacio de trabajo en 3 simples pasos.",
+        "addAccounts": "Añadir Cuentas",
+        "addAccountsDesc": "Conecta tus cuentas bancarias, efectivo o ahorro.",
+        "addFirstAccount": "Añadir Primera Cuenta",
+        "accountAdded": "Cuenta Añadida",
+        "setUpCategories": "Configurar Categorías",
+        "setUpCategoriesDesc": "Crea la estructura de tus gastos.",
+        "useRecommended": "Usar Categorías Recomendadas",
+        "categoriesReady": "Categorías Listas",
+        "allSet": "¡Todo listo!",
+        "allSetDesc": "Tu espacio está listo. Vamos al panel de control.",
+        "goToDashboard": "Ir al Panel de Control"
     }
 }

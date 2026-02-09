@@ -57,6 +57,61 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  /* Yola Fresh theme - Applied conditionally via data-theme="yolafresh" */
+  :root[data-theme="yolafresh"] {
+    --background: 0 0% 100%;
+    --foreground: 315 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 315 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 315 30% 10%;
+    --primary: 315 70% 33%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 315 20% 95%;
+    --secondary-foreground: 315 70% 33%;
+    --muted: 315 10% 95%;
+    --muted-foreground: 315 10% 45%;
+    --accent: 30 90% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 315 15% 90%;
+    --input: 315 15% 90%;
+    --ring: 315 70% 33%;
+    --chart-1: 315 70% 45%;
+    --chart-2: 30 90% 55%;
+    --chart-3: 120 50% 45%;
+    --chart-4: 45 85% 55%;
+    --chart-5: 0 75% 55%;
+  }
+
+  :root[data-theme="yolafresh"].dark {
+    --background: 315 30% 8%;
+    --foreground: 0 0% 98%;
+    --card: 315 25% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 315 25% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 315 65% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 315 20% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 315 15% 18%;
+    --muted-foreground: 315 10% 65%;
+    --accent: 30 85% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 315 20% 20%;
+    --input: 315 20% 20%;
+    --ring: 315 65% 55%;
+    --chart-1: 315 65% 55%;
+    --chart-2: 30 85% 50%;
+    --chart-3: 120 45% 50%;
+    --chart-4: 45 80% 60%;
+    --chart-5: 0 70% 60%;
+  }
 }
 
 @layer base {

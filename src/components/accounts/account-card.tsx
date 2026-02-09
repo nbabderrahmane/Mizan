@@ -8,7 +8,10 @@ import {
     Wallet,
     PiggyBank,
     TrendingUp,
-    MoreVertical
+    MoreVertical,
+    ShoppingBag,
+    Building,
+    Truck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,6 +44,21 @@ const accountTypeConfig = {
         color: "text-orange-600 dark:text-orange-400",
         bg: "bg-orange-100 dark:bg-orange-900/30",
     },
+    purchase: {
+        icon: ShoppingBag,
+        color: "text-rose-600 dark:text-rose-400",
+        bg: "bg-rose-100 dark:bg-rose-900/30",
+    },
+    g_a: {
+        icon: Building,
+        color: "text-slate-600 dark:text-slate-400",
+        bg: "bg-slate-100 dark:bg-slate-900/30",
+    },
+    logistics: {
+        icon: Truck,
+        color: "text-indigo-600 dark:text-indigo-400",
+        bg: "bg-indigo-100 dark:bg-indigo-900/30",
+    },
 };
 
 interface AccountCardProps {
@@ -49,9 +67,10 @@ interface AccountCardProps {
     onReconcile?: (account: Account) => void;
     onArchive?: (accountId: string) => void;
     workspaceId: string;
+    owner?: { name: string; email: string };
 }
 
-export function AccountCard({ account, onEdit, onReconcile, onArchive, workspaceId }: AccountCardProps) {
+export function AccountCard({ account, onEdit, onReconcile, onArchive, workspaceId, owner }: AccountCardProps) {
     const t = useTranslations("Accounts");
     const common = useTranslations("Common");
     const locale = useLocale();
@@ -81,6 +100,14 @@ export function AccountCard({ account, onEdit, onReconcile, onArchive, workspace
                                 {t(account.type as any) || account.type} • {account.base_currency}
                             </p>
                         </div>
+                        {owner && (
+                            <div className="flex items-center gap-2 ml-4 px-2 py-1 bg-muted rounded-full text-xs text-muted-foreground border">
+                                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                                    {owner.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="max-w-[100px] truncate">{owner.name}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div onClick={(e) => e.preventDefault()}>
@@ -130,9 +157,10 @@ interface AccountListProps {
     onReconcile?: (account: Account) => void;
     onArchive?: (accountId: string) => void;
     workspaceId: string;
+    members?: { user_id: string; first_name: string | null; last_name: string | null; email: string }[];
 }
 
-export function AccountList({ accounts, onEdit, onReconcile, onArchive, workspaceId }: AccountListProps) {
+export function AccountList({ accounts, onEdit, onReconcile, onArchive, workspaceId, members = [] }: AccountListProps) {
     const t = useTranslations("Accounts");
 
     if (!accounts.length) {
@@ -145,16 +173,20 @@ export function AccountList({ accounts, onEdit, onReconcile, onArchive, workspac
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {accounts.map((account) => (
-                <AccountCard
-                    key={account.id}
-                    account={account}
-                    onEdit={onEdit}
-                    onReconcile={onReconcile}
-                    onArchive={onArchive}
-                    workspaceId={workspaceId}
-                />
-            ))}
+            {accounts.map((account) => {
+                const owner = members?.find(m => m.user_id === account.owner_user_id);
+                return (
+                    <AccountCard
+                        key={account.id}
+                        account={account}
+                        onEdit={onEdit}
+                        onReconcile={onReconcile}
+                        onArchive={onArchive}
+                        workspaceId={workspaceId}
+                        owner={owner ? { name: owner.first_name || owner.email, email: owner.email } : undefined}
+                    />
+                );
+            })}
         </div>
     );
 }

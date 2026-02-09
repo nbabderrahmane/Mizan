@@ -20,6 +20,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
+import { User, Briefcase } from "lucide-react";
 import { createWorkspace } from "@/lib/actions/workspace";
 import { signOut } from "@/lib/actions/auth";
 import { useTranslations } from "next-intl";
@@ -76,6 +79,36 @@ export default function CreateWorkspacePage() {
                                 autoFocus
                             />
                         </div>
+
+                        <div className="space-y-3">
+                            <Label>{t("workspaceType")}</Label>
+                            <RadioGroup defaultValue="personal" name="type" className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <RadioGroupItem value="personal" id="personal" className="peer sr-only" />
+                                    <Label
+                                        htmlFor="personal"
+                                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                    >
+                                        <User className="mb-3 h-6 w-6" />
+                                        <div className="text-sm font-semibold">{t("personal")}</div>
+                                    </Label>
+                                </div>
+                                <div>
+                                    <RadioGroupItem value="business" id="business" className="peer sr-only" />
+                                    <Label
+                                        htmlFor="business"
+                                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary peer-data-[state=checked]:text-primary cursor-pointer transition-all"
+                                    >
+                                        <Briefcase className="mb-3 h-6 w-6" />
+                                        <div className="text-sm font-semibold">{t("business")}</div>
+                                    </Label>
+                                </div>
+                            </RadioGroup>
+                            <p className="text-[0.8rem] text-muted-foreground">
+                                {t("typeDescription")}
+                            </p>
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="currency">{common("currency")}</Label>
                             <Select name="currency" defaultValue="USD" disabled={isLoading}>
@@ -110,8 +143,8 @@ export default function CreateWorkspacePage() {
                         </form>
                     </div>
                 </CardContent>
-            </Card>
-        </div>
+            </Card >
+        </div >
     );
 }
 

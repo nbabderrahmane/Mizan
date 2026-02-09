@@ -35,7 +35,8 @@ import {
 import { WorkspaceSwitcher, WorkspaceItem } from "./workspace-switcher";
 import { signOut } from "@/lib/actions/auth";
 import { NotificationBell } from "./notification-bell";
-import { InstallPWAButton } from "./install-pwa-button";
+import { getDomainConfig } from "@/lib/domain-config";
+import Image from "next/image";
 
 import { useTranslations } from "next-intl";
 
@@ -61,6 +62,7 @@ export function AppShell({
     const pathname = usePathname();
     const t = useTranslations("Navigation");
     const common = useTranslations("Common");
+    const domainConfig = userEmail ? getDomainConfig(userEmail) : undefined;
 
     const navItems = [
         { href: "dashboard", label: t("dashboard"), icon: LayoutDashboard },
@@ -83,8 +85,17 @@ export function AppShell({
                 <div className="flex flex-col h-full">
                     {/* Logo */}
                     <div className="h-16 flex items-center px-4 border-b">
-                        <Link href="/" className="font-bold text-xl">
-                            Mizan
+                        <Link href="/" className="font-bold text-xl flex items-center gap-2">
+                            {domainConfig?.logoPath ? (
+                                <Image
+                                    src={domainConfig.logoPath}
+                                    alt={domainConfig.appTitle || "Logo"}
+                                    width={32}
+                                    height={32}
+                                    className="object-contain"
+                                />
+                            ) : null}
+                            <span>{domainConfig?.appTitle || "Mizan"}</span>
                         </Link>
                     </div>
 
@@ -181,8 +192,6 @@ export function AppShell({
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        {/* PWA Install Button */}
-                        <InstallPWAButton />
 
                         <form action={signOut}>
                             <button
@@ -306,8 +315,17 @@ export function AppShell({
             {/* Mobile Header */}
             <header className="md:hidden h-14 flex items-center justify-between px-4 border-b bg-card fixed top-0 left-0 right-0 z-40">
                 <div className="flex items-center gap-2 h-full py-2">
-                    <Link href="/" className="font-bold text-lg flex items-center h-full">
-                        Mizan
+                    <Link href="/" className="font-bold text-lg flex items-center h-full gap-2">
+                        {domainConfig?.logoPath ? (
+                            <Image
+                                src={domainConfig.logoPath}
+                                alt={domainConfig.appTitle || "Logo"}
+                                width={24}
+                                height={24}
+                                className="object-contain"
+                            />
+                        ) : null}
+                        <span>{domainConfig?.appTitle || "Mizan"}</span>
                     </Link>
                     <div className="w-40">
                         <WorkspaceSwitcher

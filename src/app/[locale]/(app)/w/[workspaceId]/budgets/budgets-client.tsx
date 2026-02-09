@@ -29,6 +29,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocale, useTranslations } from "next-intl";
+import { getCategoryDisplayName } from "@/lib/utils/category-i18n";
 
 interface BudgetsClientProps {
     workspaceId: string;
@@ -36,10 +37,12 @@ interface BudgetsClientProps {
     categories: any[];
     accounts?: any[];
     workspaceCurrency?: string;
+    fxRates?: Record<string, number>;
 }
 
-export function BudgetsClient({ workspaceId, initialBudgets, categories, accounts = [], workspaceCurrency = "USD" }: BudgetsClientProps) {
+export function BudgetsClient({ workspaceId, initialBudgets, categories, accounts = [], workspaceCurrency = "USD", fxRates = {} }: BudgetsClientProps) {
     const t = useTranslations("Budgets");
+    const catT = useTranslations("Categories");
     const common = useTranslations("Common");
     const locale = useLocale();
     const [budgets, setBudgets] = useState(initialBudgets);
@@ -65,24 +68,39 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
         }
     };
 
-    // Group budgets by Category
+    // Helper to translate category/subcategory names
+    const translateCat = (item: { key?: string | null; name: string } | undefined | null) => {
+        if (!item) return t("uncategorized");
+        return getCategoryDisplayName(item, (k) => catT(`keys.${k}`));
+    };
+
+    // Group budgets by Category (using translated name for grouping key)
     const grouped = budgets.reduce((acc, budget) => {
-        const catName = budget.subcategory?.category?.name || t("uncategorized");
+        const catItem = budget.subcategory?.category;
+        const catName = catItem ? translateCat(catItem) : t("uncategorized");
         if (!acc[catName]) acc[catName] = [];
         acc[catName].push(budget);
         return acc;
     }, {} as Record<string, BudgetWithConfigs[]>);
 
-    // Convert to array and sort by Total Budget Size (Cap + Target) descending
+    // Convert to array and sort by Total Budget Size (Converted to Workspace Currency) descending
     const sortedGroups = Object.entries(grouped).map(([categoryName, items]) => {
         const totalBudget = items.reduce((sum, b) => {
             const val = b.type === "PAYG"
                 ? (typeof b.payg_config === 'object' && !Array.isArray(b.payg_config) ? b.payg_config?.monthly_cap : 0)
                 : (typeof b.plan_config === 'object' && !Array.isArray(b.plan_config) ? b.plan_config?.target_amount : 0);
-            return sum + (val || 0);
+
+            const rate = fxRates[b.currency || 'USD'] || 1;
+            return sum + ((val || 0) * rate);
         }, 0);
 
-        const totalReserved = items.reduce((sum, b) => sum + (b.current_reserved || 0), 0);
+        const totalReserved = items.reduce((sum, b) => {
+            // current_reserved is likely in budget currency (based on ledger logic). 
+            // We need to verify if ledger stores amount in base or original. 
+            // Assuming ledger matches budget currency for now (standard logic), so we convert.
+            const rate = fxRates[b.currency || 'USD'] || 1;
+            return sum + ((b.current_reserved || 0) * rate);
+        }, 0);
 
         return {
             categoryName,
@@ -115,6 +133,7 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
                         onDelete={handleDelete}
                         onEdit={setBudgetToEdit}
                         workspaceId={workspaceId}
+                        workspaceCurrency={workspaceCurrency}
                     />
                 ))}
 
@@ -158,10 +177,11 @@ export function BudgetsClient({ workspaceId, initialBudgets, categories, account
     );
 }
 
-function CategorySection({ group, onDelete, onEdit, workspaceId }: { group: { categoryName: string, items: BudgetWithConfigs[], totalBudget: number, totalReserved: number }, onDelete: (id: string) => void, onEdit: (budget: BudgetWithConfigs) => void, workspaceId: string }) {
+function CategorySection({ group, onDelete, onEdit, workspaceId, workspaceCurrency }: { group: { categoryName: string, items: BudgetWithConfigs[], totalBudget: number, totalReserved: number }, onDelete: (id: string) => void, onEdit: (budget: BudgetWithConfigs) => void, workspaceId: string, workspaceCurrency: string }) {
     const t = useTranslations("Budgets");
     const locale = useLocale();
-    const displayCurrency = group.items[0]?.currency || 'USD';
+    // Force display in Workspace Currency
+    const displayCurrency = workspaceCurrency;
 
     return (
         <Card className="overflow-hidden border-none shadow-sm ring-1 ring-border">
@@ -177,7 +197,7 @@ function CategorySection({ group, onDelete, onEdit, workspaceId }: { group: { ca
                         <span>{t("allocated")}</span>
                         <span>{new Intl.NumberFormat(locale, { style: 'currency', currency: displayCurrency, compactDisplay: "short", notation: "compact" }).format(group.totalReserved)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: displayCurrency, compactDisplay: "short", notation: "compact" }).format(group.totalBudget)}</span>
                     </div>
-                    <Progress value={(group.totalReserved / group.totalBudget) * 100} className="h-2" />
+                    <Progress value={group.totalBudget > 0 ? (group.totalReserved / group.totalBudget) * 100 : 0} className="h-2" />
                 </div>
             </div>
 
@@ -204,10 +224,16 @@ function CategorySection({ group, onDelete, onEdit, workspaceId }: { group: { ca
 function BudgetRow({ budget, onDelete, onEdit, workspaceId }: { budget: BudgetWithConfigs, onDelete: (id: string) => void, onEdit: (budget: BudgetWithConfigs) => void, workspaceId: string }) {
     const router = useRouter();
     const t = useTranslations("Budgets");
+    const catT = useTranslations("Categories");
     const common = useTranslations("Common");
     const locale = useLocale();
     const isPAYG = budget.type === "PAYG";
     const reserved = budget.current_reserved || 0;
+
+    // Translate subcategory name
+    const subName = budget.subcategory
+        ? getCategoryDisplayName(budget.subcategory, (k) => catT(`keys.${k}`))
+        : budget.name;
 
     const paygConfig = Array.isArray(budget.payg_config) ? budget.payg_config[0] : budget.payg_config;
     const planConfig = Array.isArray(budget.plan_config) ? budget.plan_config[0] : budget.plan_config;
@@ -217,8 +243,7 @@ function BudgetRow({ budget, onDelete, onEdit, workspaceId }: { budget: BudgetWi
             <TableRow className="group opacity-70 bg-destructive/5">
                 <TableCell>
                     <div className="flex flex-col">
-                        <span className="font-medium text-base">{budget.subcategory?.name}</span>
-                        <span className="text-xs text-muted-foreground">{budget.name}</span>
+                        <span className="font-medium text-base">{subName}</span>
                     </div>
                 </TableCell>
                 <TableCell colSpan={3}>
@@ -257,8 +282,7 @@ function BudgetRow({ budget, onDelete, onEdit, workspaceId }: { budget: BudgetWi
         <TableRow className="group">
             <TableCell>
                 <div className="flex flex-col">
-                    <span className="font-medium text-base">{budget.subcategory?.name}</span>
-                    <span className="text-xs text-muted-foreground">{budget.name}</span>
+                    <span className="font-medium text-base">{subName}</span>
                 </div>
             </TableCell>
             <TableCell>

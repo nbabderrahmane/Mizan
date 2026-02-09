@@ -57,7 +57,12 @@
         "eatingOut": "Eating Out",
         "subscriptions": "Subscriptions",
         "debt": "Debt Payments",
-        "misc": "Misc / Buffer"
+        "debt": "Debt Payments",
+        "misc": "Misc / Buffer",
+        "workspaceType": "Workspace Type",
+        "personal": "Personal",
+        "business": "Business",
+        "typeDescription": "Personal is for you and your family. Business is for companies requiring multi-user access and cash registers."
     },
     "Invitations": {
         "invalid": "Invalid Invitation",
@@ -172,7 +177,36 @@
         "transactionType": "Transaction Type",
         "selectType": "Select type",
         "typeHint": "Used to filter categories in transaction forms.",
-        "icon": "Icon"
+        "icon": "Icon",
+        "keys": {
+            "essentials": "Essentials",
+            "lifestyle": "Lifestyle",
+            "income": "Income",
+            "home": "Home",
+            "food": "Food",
+            "transport": "Transportation",
+            "health": "Health",
+            "utilities": "Utilities",
+            "entertainment": "Entertainment",
+            "shopping": "Shopping",
+            "holidays": "Holidays",
+            "hobbies": "Hobbies",
+            "other": "Other",
+            "salary": "Salary",
+            "freelance": "Freelance",
+            "dividends": "Dividends",
+            "gifts": "Gifts",
+            "refunds": "Refunds",
+            "rent": "Rent / Mortgage",
+            "groceries": "Groceries",
+            "eating_out": "Eating Out",
+            "subscriptions": "Subscriptions",
+            "debt": "Debt Payments",
+            "misc": "Miscellaneous",
+            "financial": "Financial",
+            "savings": "Savings",
+            "investments": "Investments"
+        }
     },
     "Transactions": {
         "title": "Transactions",
@@ -218,7 +252,11 @@
         "totalIn": "Total in {currency}",
         "subcategory": "Subcategory",
         "selectSubcategory": "Select subcategory",
-        "notePlaceholder": "Dinner at Mama's"
+        "selectSubcategory": "Select subcategory",
+        "notePlaceholder": "Dinner at Mama's",
+        "attachments": "Attachments",
+        "uploading": "Uploading...",
+        "waitUpload": "Please wait for the file upload to complete."
     },
     "Budgets": {
         "title": "Budgets & Plans",
@@ -437,5 +475,30 @@
         "description": "Shared budgeting for families and friends",
         "signIn": "Sign In",
         "signUp": "Sign Up"
+    },
+    "RoleSelection": {
+        "welcomeBack": "Welcome back, {name}",
+        "selectAccount": "Select an account to continue.",
+        "supportAdmin": "Support Admin",
+        "supportAdminDesc": "Access global system statistics, manage users, and view workspace metadata.",
+        "enterAdmin": "Enter Admin Dashboard",
+        "personalWorkspaces": "Personal Workspaces",
+        "personalWorkspacesDesc": "Manage your shared budgets, transactions, and financial reports.",
+        "enterWorkspaces": "Enter Workspaces"
+    },
+    "Setup": {
+        "title": "Quick Setup",
+        "description": "Let's get your workspace ready in 3 simple steps.",
+        "addAccounts": "Add Accounts",
+        "addAccountsDesc": "Connect your bank, cash, or savings accounts.",
+        "addFirstAccount": "Add First Account",
+        "accountAdded": "Account Added",
+        "setUpCategories": "Set Up Categories",
+        "setUpCategoriesDesc": "Create the structure for your spending.",
+        "useRecommended": "Use Recommended Categories",
+        "categoriesReady": "Categories Ready",
+        "allSet": "You're all set!",
+        "allSetDesc": "Your workspace is ready. Let's go to the dashboard.",
+        "goToDashboard": "Go to Dashboard"
     }
 }

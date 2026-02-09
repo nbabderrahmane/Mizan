@@ -40,22 +40,26 @@ export async function saveTopBudgets(workspaceId: string, items: TopBudgetInput[
             return { success: false, error: "Unauthorized" };
         }
 
-        // 1. Process Salary (Income Baseline)
+        // 1. Fetch workspace currency FIRST
+        const { data: workspace } = await supabase
+            .from("workspaces")
+            .select("currency, metadata")
+            .eq("id", workspaceId)
+            .single();
+
+        const workspaceCurrency = workspace?.currency || "USD";
+        console.log(`[Onboarding] Using workspace currency: ${workspaceCurrency}`);
+
+        // 2. Process Salary (Income Baseline)
         const salaryItem = items.find(i => i.key === "salary");
         if (salaryItem && salaryItem.amount > 0) {
-            // Update workspace metadata
-            // We use RPC or direct update if policy allows. 
-            // Assuming we are OWNER, RLS allows update.
-            // Fetch current metadata first to merge? Or just use jsonb_set in SQL.
-            // Let's simple fetch and update.
-            const { data: ws } = await supabase.from("workspaces").select("metadata").eq("id", workspaceId).single();
-            const currentMeta = ws?.metadata || {};
+            const currentMeta = workspace?.metadata || {};
 
             await supabase.from("workspaces").update({
                 metadata: {
                     ...currentMeta,
                     income_baseline: salaryItem.amount,
-                    income_baseline_currency: "MAD" // TODO: Fetch workspace currency
+                    income_baseline_currency: workspaceCurrency
                 }
             }).eq("id", workspaceId);
         }
@@ -69,10 +73,10 @@ export async function saveTopBudgets(workspaceId: string, items: TopBudgetInput[
             return { success: true };
         }
 
-        // Fetch existing categories to map parents
-        const { data: categories } = await supabase.from("categories").select("id, name").eq("workspace_id", workspaceId);
+        // Fetch existing categories to map parents (include key for i18n matching)
+        const { data: categories } = await supabase.from("categories").select("id, name, key").eq("workspace_id", workspaceId);
 
-        const { data: subcategories } = await supabase.from("subcategories").select("id, name, category_id").eq("workspace_id", workspaceId);
+        const { data: subcategories } = await supabase.from("subcategories").select("id, name, key, category_id").eq("workspace_id", workspaceId);
 
         // Helper to find or create category/subcategory
         const getSubcategoryId = async (key: string): Promise<string | null> => {
@@ -116,20 +120,20 @@ export async function saveTopBudgets(workspaceId: string, items: TopBudgetInput[
                 }
             }
 
-            // Find Subcategory by precise name OR fuzzy match
+            // Find Subcategory by KEY first (preferred for i18n), then by name
             let sub = subcategories?.find(s =>
                 s.category_id === parentCat!.id &&
-                (s.name.toLowerCase() === def.name.toLowerCase() || s.name.toLowerCase().includes(def.name.toLowerCase()))
+                (s.key === key || s.name.toLowerCase() === def.name.toLowerCase())
             );
 
             if (sub) return sub.id;
 
-            // Soft-create Subcategory
+            // Soft-create Subcategory with key for i18n
             const { data: newSub, error: subError } = await supabase.from("subcategories").insert({
                 workspace_id: workspaceId,
                 category_id: parentCat!.id,
-                name: def.name
-                // funding_mode removed as it likely doesn't exist
+                name: def.name,
+                key: key // Store key for i18n translation
             }).select().single();
 
             if (subError) {
@@ -168,11 +172,12 @@ export async function saveTopBudgets(workspaceId: string, items: TopBudgetInput[
                     metadata: { recurring: item.recurring }
                 }).eq("id", existingBudget.id);
             } else {
-                // Create Budget
+                // Create Budget with workspace currency
                 const { data: newBudget } = await supabase.from("budgets").insert({
                     workspace_id: workspaceId,
                     subcategory_id: subId,
-                    name: CANONICAL_MAP[item.key].name, // or keep null to inherit logic
+                    name: CANONICAL_MAP[item.key].name,
+                    currency: workspaceCurrency, // Use workspace currency
                     type: "PAYG",
                     status: "active"
                 }).select().single();

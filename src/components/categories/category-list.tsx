@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { CategoryWithSubcategories, Subcategory } from "@/lib/actions/category";
 import { useTranslations } from "next-intl";
+import { getCategoryDisplayName } from "@/lib/utils/category-i18n";
 
 interface CategoryListProps {
     categories: CategoryWithSubcategories[];
@@ -111,6 +112,7 @@ function CategoryItem({
     onEditSubcategory,
     onDeleteSubcategory,
 }: CategoryItemProps) {
+    const t = useTranslations("Categories");
     const common = useTranslations("Common");
     return (
         <div className="rounded-lg border bg-card">
@@ -124,7 +126,7 @@ function CategoryItem({
                     ) : (
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="font-medium">{category.name}</span>
+                    <span className="font-medium">{getCategoryDisplayName(category, (k) => t(`keys.${k}`))}</span>
                     <Badge variant="secondary" className="text-xs">
                         {category.subcategories.length}
                     </Badge>
@@ -191,11 +193,12 @@ function SubcategoryItem({
     onEdit,
     onDelete,
 }: SubcategoryItemProps) {
+    const t = useTranslations("Categories");
     const common = useTranslations("Common");
     return (
         <div className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/50">
             <div className="flex items-center gap-2">
-                <span className="text-sm">{subcategory.name}</span>
+                <span className="text-sm">{getCategoryDisplayName(subcategory, (k) => t(`keys.${k}`))}</span>
             </div>
 
             {canManage && (

@@ -22,9 +22,10 @@ interface QuickStartProps {
     accounts: any[];
     categories: any[];
     currency: string;
+    workspaceType: string;
 }
 
-export function QuickStart({ workspaceId, stats, accounts, categories, currency }: QuickStartProps) {
+export function QuickStart({ workspaceId, stats, accounts, categories, currency, workspaceType }: QuickStartProps) {
     const t = useTranslations("Dashboard");
     const [isVisible, setIsVisible] = useState(true);
     const [isMounted, setIsMounted] = useState(false);
@@ -124,6 +125,7 @@ export function QuickStart({ workspaceId, stats, accounts, categories, currency 
                 {/* Dialogs */}
                 <CreateAccountDialog
                     workspaceId={workspaceId}
+                    workspaceType={workspaceType}
                     open={accountOpen}
                     onOpenChange={setAccountOpen}
                     onSuccess={() => setAccountOpen(false)}

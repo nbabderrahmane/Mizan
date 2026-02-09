@@ -20,11 +20,12 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { createAccount } from "@/lib/actions/account";
-import { accountTypes, commonCurrencies } from "@/lib/validations/account";
+import { accountTypes, personalAccountTypes, businessAccountTypes, commonCurrencies } from "@/lib/validations/account";
 import { useTranslations } from "next-intl";
 
 interface CreateAccountDialogProps {
     workspaceId: string;
+    workspaceType: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
@@ -32,6 +33,7 @@ interface CreateAccountDialogProps {
 
 export function CreateAccountDialog({
     workspaceId,
+    workspaceType,
     open,
     onOpenChange,
     onSuccess,
@@ -40,6 +42,8 @@ export function CreateAccountDialog({
     const common = useTranslations("Common");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const availableTypes = workspaceType === "business" ? businessAccountTypes : personalAccountTypes;
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -87,7 +91,7 @@ export function CreateAccountDialog({
                                 <SelectValue placeholder={t("selectType")} />
                             </SelectTrigger>
                             <SelectContent>
-                                {accountTypes.map((type) => (
+                                {availableTypes.map((type) => (
                                     <SelectItem key={type} value={type}>
                                         {t(type as any) || type.charAt(0).toUpperCase() + type.slice(1)}
                                     </SelectItem>

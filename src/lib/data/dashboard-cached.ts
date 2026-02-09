@@ -25,19 +25,39 @@ export const getCachedDashboardStats = unstable_cache(
  * Cached version of getBalanceHistory.
  * uses Admin Client to bypass cookie requirement.
  */
-export const getCachedBalanceHistory = unstable_cache(
-    async (
-        workspaceId: string,
-        range: "7d" | "30d" | "90d" | "1y" | "mtd" = "30d",
-        accountId?: string
-    ): Promise<{ date: string; balance: number }[]> => {
-        // Use Admin Client inside cache scope
-        const adminClient = createAdminClient();
-        return fetchBalanceHistory(workspaceId, range, accountId, adminClient);
-    },
-    ['balance-history'],
-    {
-        revalidate: 300,
-        tags: ['dashboard', 'balance'],
-    }
-);
+export const getCachedBalanceHistory = async (
+    workspaceId: string,
+    userId: string,
+    range: "7d" | "30d" | "90d" | "1y" | "mtd" = "30d",
+    accountId?: string
+): Promise<{ date: string; balance: number }[]> => {
+    return unstable_cache(
+        async () => {
+            // Use Admin Client inside cache scope
+            const adminClient = createAdminClient();
+
+            // Internal Guardrail: Verify membership
+            // This is a defense-in-depth check. The caller should have already checked, but we double-check here.
+            // Also ensures cache segregation by userId.
+            const { data: member } = await adminClient
+                .from("workspace_members")
+                .select("user_id")
+                .eq("workspace_id", workspaceId)
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (!member) {
+                // Throwing here prevents caching the result of an unauthorized attempt
+                // and fails the request safeley.
+                throw new Error("Unauthorized");
+            }
+
+            return fetchBalanceHistory(workspaceId, range, accountId, adminClient);
+        },
+        ['balance-history', workspaceId, range, accountId ?? 'all'],
+        {
+            revalidate: 300,
+            tags: ['dashboard', 'balance'],
+        }
+    )();
+};

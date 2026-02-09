@@ -233,14 +233,15 @@ export async function listBudgets(workspaceId: string): Promise<BudgetResult<Bud
     try {
         const supabase = await createClient();
 
-        // Fetch budgets with configs and category info
+        // Fetch budgets with configs and category info (including keys for i18n)
         const { data, error } = await supabase
             .from("budgets")
             .select(`
                 *,
                 subcategory:subcategories(
                     name,
-                    category:categories(name)
+                    key,
+                    category:categories(name, key)
                 ),
                 payg_config:budget_payg_configs(monthly_cap),
                 plan_config:budget_plan_configs(*)

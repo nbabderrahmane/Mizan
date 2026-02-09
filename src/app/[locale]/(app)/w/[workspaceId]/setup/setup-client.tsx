@@ -14,20 +14,18 @@ interface SetupPageClientProps {
     workspaceId: string;
     hasCategories: boolean;
     hasAccounts: boolean;
+    workspaceType: string;
 }
 
 export function SetupPageClient({
     workspaceId,
     hasCategories,
     hasAccounts,
+    workspaceType,
 }: SetupPageClientProps) {
     const router = useRouter();
-    const t = useTranslations("Onboarding"); // Assuming keys are here mostly
-    // For manual button, I added "setupManually" to "Onboarding" in messages/en.json via replace earlier?
-    // Wait, I added it to "Onboarding"? 
-    // replacing: "createYourWorkspace": "Create your workspace"
-    //           "setupManually": "Setup Manually"
-    // Yes, that was in Onboarding section (lines 34-46 in original view).
+    const t = useTranslations("Setup");
+    const onboarding = useTranslations("Onboarding");
 
     const [isSeeding, setIsSeeding] = useState(false);
     const [seeded, setSeeded] = useState(hasCategories);
@@ -61,9 +59,9 @@ export function SetupPageClient({
     return (
         <div className="max-w-3xl mx-auto space-y-6">
             <div className="text-center">
-                <h1 className="text-3xl font-bold tracking-tight">Quick Setup</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
                 <p className="text-muted-foreground mt-2 text-lg">
-                    Let&apos;s get your workspace ready in 3 simple steps.
+                    {t("description")}
                 </p>
             </div>
 
@@ -77,9 +75,9 @@ export function SetupPageClient({
                                     {accountsCreated ? <CheckCircle className="h-5 w-5" /> : "1"}
                                 </div>
                                 <div>
-                                    <CardTitle>Add Accounts</CardTitle>
+                                    <CardTitle>{t("addAccounts")}</CardTitle>
                                     <CardDescription>
-                                        Connect your bank, cash, or savings accounts.
+                                        {t("addAccountsDesc")}
                                     </CardDescription>
                                 </div>
                             </div>
@@ -87,11 +85,11 @@ export function SetupPageClient({
                         <CardContent>
                             {!accountsCreated ? (
                                 <Button onClick={() => setIsAccountDialogOpen(true)} className="w-full sm:w-auto">
-                                    <Plus className="mr-2 h-4 w-4" /> Add First Account
+                                    <Plus className="mr-2 h-4 w-4" /> {t("addFirstAccount")}
                                 </Button>
                             ) : (
                                 <div className="flex items-center text-sm text-green-600 font-medium">
-                                    <CheckCircle className="mr-2 h-4 w-4" /> Account Added
+                                    <CheckCircle className="mr-2 h-4 w-4" /> {t("accountAdded")}
                                 </div>
                             )}
                         </CardContent>
@@ -107,9 +105,9 @@ export function SetupPageClient({
                                     {seeded ? <CheckCircle className="h-5 w-5" /> : "2"}
                                 </div>
                                 <div>
-                                    <CardTitle>Set Up Categories</CardTitle>
+                                    <CardTitle>{t("setUpCategories")}</CardTitle>
                                     <CardDescription>
-                                        Create the structure for your spending.
+                                        {t("setUpCategoriesDesc")}
                                     </CardDescription>
                                 </div>
                             </div>
@@ -124,9 +122,9 @@ export function SetupPageClient({
                                         className="w-full sm:w-auto"
                                     >
                                         {isSeeding ? (
-                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Setting up...</>
+                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("setUpCategoriesDesc")}</>
                                         ) : (
-                                            <><Sparkles className="mr-2 h-4 w-4" /> Use Recommended Categories</>
+                                            <><Sparkles className="mr-2 h-4 w-4" /> {t("useRecommended")}</>
                                         )}
                                     </Button>
                                     <Button
@@ -135,12 +133,12 @@ export function SetupPageClient({
                                         variant="outline"
                                         className="w-full sm:w-auto"
                                     >
-                                        {t("setupManually")}
+                                        {onboarding("setupManually")}
                                     </Button>
                                 </div>
                             ) : (
                                 <div className="flex items-center text-sm text-green-600 font-medium">
-                                    <CheckCircle className="mr-2 h-4 w-4" /> Categories Ready
+                                    <CheckCircle className="mr-2 h-4 w-4" /> {t("categoriesReady")}
                                 </div>
                             )}
                         </CardContent>
@@ -163,9 +161,9 @@ export function SetupPageClient({
                                     <CheckCircle className="h-8 w-8 text-green-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-2xl">You&apos;re all set!</h3>
+                                    <h3 className="font-bold text-2xl">{t("allSet")}</h3>
                                     <p className="text-muted-foreground">
-                                        Your workspace is ready. Let&apos;s go to the dashboard.
+                                        {t("allSetDesc")}
                                     </p>
                                 </div>
                                 <Button
@@ -173,7 +171,7 @@ export function SetupPageClient({
                                     onClick={() => router.push(`/w/${workspaceId}/dashboard`)}
                                     className="w-full sm:w-auto min-w-[200px]"
                                 >
-                                    Go to Dashboard
+                                    {t("goToDashboard")}
                                 </Button>
                             </div>
                         </CardContent>
@@ -183,6 +181,7 @@ export function SetupPageClient({
 
             <CreateAccountDialog
                 workspaceId={workspaceId}
+                workspaceType={workspaceType}
                 open={isAccountDialogOpen}
                 onOpenChange={setIsAccountDialogOpen}
                 onSuccess={handleAccountCreated}

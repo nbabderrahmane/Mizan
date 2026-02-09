@@ -5,6 +5,7 @@ import { createLogger, createSafeError } from "@/lib/logger";
 import { signUpSchema, signInSchema, changePasswordSchema } from "@/lib/validations/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { getDomainConfig } from "@/lib/domain-config";
 
 export type AuthResult = {
     success: boolean;
@@ -92,6 +93,66 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
                 .eq("id", data.user.id);
         }
 
+        // AUTO-JOIN WORKSPACE: Check if user's domain has auto-join configured
+        const domainConfig = getDomainConfig(validatedData.email);
+        if (domainConfig?.workspaceName) {
+            try {
+                // Try to find the existing workspace for this domain
+                let workspaceId = domainConfig.autoJoinWorkspaceId;
+
+                if (!workspaceId) {
+                    // Search for workspace by name (case-insensitive match)
+                    const { data: existingWorkspace } = await supabase
+                        .from("workspaces")
+                        .select("id")
+                        .ilike("name", domainConfig.workspaceName)
+                        .limit(1)
+                        .single();
+
+                    workspaceId = existingWorkspace?.id;
+                }
+
+                if (workspaceId) {
+                    // Check if user is already a member (shouldn't be, but safety check)
+                    const { data: existingMember } = await supabase
+                        .from("workspace_members")
+                        .select("user_id")
+                        .eq("workspace_id", workspaceId)
+                        .eq("user_id", data.user.id)
+                        .single();
+
+                    if (!existingMember) {
+                        // Add user as VIEWER to the workspace
+                        await supabase
+                            .from("workspace_members")
+                            .insert({
+                                workspace_id: workspaceId,
+                                user_id: data.user.id,
+                                role: domainConfig.autoJoinRole || "VIEWER",
+                            });
+
+                        logger.info("User auto-joined workspace", {
+                            action: "signUp",
+                            userId: data.user.id,
+                            workspaceId,
+                            role: domainConfig.autoJoinRole || "VIEWER",
+                        });
+                    }
+                } else {
+                    logger.warn("Auto-join workspace not found", {
+                        action: "signUp",
+                        workspaceName: domainConfig.workspaceName,
+                    });
+                }
+            } catch (autoJoinError) {
+                // Don't fail signup if auto-join fails - log and continue
+                logger.error("Auto-join workspace failed", autoJoinError as Error, {
+                    action: "signUp",
+                    userId: data.user.id,
+                });
+            }
+        }
+
         logger.info("User signed up successfully", {
             action: "signUp",
             userId: data.user.id,
@@ -109,6 +170,57 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
         }
 
         logger.error("Unexpected error in signUp", error as Error, { action: "signUp" });
+        return {
+            success: false,
+            error: createSafeError(
+                "An unexpected error occurred. Please try again.",
+                logger.correlationId
+            ),
+        };
+    }
+}
+
+/**
+ * Sign in with Google (OAuth).
+ */
+export async function signInWithGoogle(): Promise<AuthResult> {
+    const logger = createLogger();
+    logger.info("signInWithGoogle action started", { action: "signInWithGoogle" });
+
+    try {
+        const supabase = await createClient();
+        const origin = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo: `${origin}/auth/callback`,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                },
+            },
+        });
+
+        if (error) {
+            logger.error("Supabase auth signInWithGoogle failed", error, { action: "signInWithGoogle" });
+            return {
+                success: false,
+                error: createSafeError(error.message, logger.correlationId),
+            };
+        }
+
+        if (data.url) {
+            redirect(data.url);
+        }
+
+        return { success: true };
+    } catch (error) {
+        if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+            throw error; // Let Next.js handle the redirect
+        }
+
+        logger.error("Unexpected error in signInWithGoogle", error as Error, { action: "signInWithGoogle" });
         return {
             success: false,
             error: createSafeError(

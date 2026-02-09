@@ -39,6 +39,7 @@ import { updateTransaction, getUniqueVendors } from "@/lib/actions/transaction";
 import { fetchFxRateAction } from "@/lib/services/fx";
 import type { Transaction } from "@/lib/actions/transaction";
 import { useLocale, useTranslations } from "next-intl";
+import { getCategoryDisplayName } from "@/lib/utils/category-i18n";
 
 interface Account {
     id: string;
@@ -49,8 +50,9 @@ interface Account {
 interface Category {
     id: string;
     name: string;
+    key?: string | null;
     type?: string | null;
-    subcategories: { id: string; name: string }[];
+    subcategories: { id: string; name: string; key?: string | null }[];
 }
 
 interface EditTransactionSheetProps {
@@ -75,6 +77,7 @@ export function EditTransactionSheet({
     onSuccess,
 }: EditTransactionSheetProps) {
     const t = useTranslations("Transactions");
+    const catT = useTranslations("Categories");
     const common = useTranslations("Common");
     const locale = useLocale();
     const router = useRouter();
@@ -331,7 +334,7 @@ export function EditTransactionSheet({
                                         <SelectContent>
                                             {filteredCategories.map((cat) => (
                                                 <SelectItem key={cat.id} value={cat.id}>
-                                                    {cat.name}
+                                                    {getCategoryDisplayName(cat, (k) => catT(`keys.${k}`))}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -350,7 +353,7 @@ export function EditTransactionSheet({
                                         <SelectContent>
                                             {categories.find(c => c.id === categoryId)?.subcategories.map((sub) => (
                                                 <SelectItem key={sub.id} value={sub.id}>
-                                                    {sub.name}
+                                                    {getCategoryDisplayName(sub, (k) => catT(`keys.${k}`))}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

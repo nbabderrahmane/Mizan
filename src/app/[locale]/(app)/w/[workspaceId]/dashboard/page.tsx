@@ -61,6 +61,7 @@ export default async function DashboardPage({
                 accounts={accountsResult.success ? accountsResult.data || [] : []}
                 categories={categoriesResult.success ? categoriesResult.data || [] : []}
                 currency={currency}
+                workspaceType={workspace.type || "personal"}
             />
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

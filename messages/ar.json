@@ -157,7 +157,36 @@
         "transactionType": "نوع المعاملة",
         "selectType": "اختر النوع",
         "typeHint": "يستخدم لتصفية الفئات في نماذج المعاملات.",
-        "icon": "أيقونة"
+        "icon": "أيقونة",
+        "keys": {
+            "essentials": "الأساسيات",
+            "lifestyle": "نمط الحياة",
+            "income": "الدخل",
+            "home": "المنزل",
+            "food": "الطعام",
+            "transport": "النقل",
+            "health": "الصحة",
+            "utilities": "الخدمات",
+            "entertainment": "الترفيه",
+            "shopping": "التسوق",
+            "holidays": "العطلات",
+            "hobbies": "الهوايات",
+            "other": "أخرى",
+            "salary": "الراتب",
+            "freelance": "العمل الحر",
+            "dividends": "أرباح الأسهم",
+            "gifts": "الهدايا",
+            "refunds": "المبالغ المستردة",
+            "rent": "الإيجار / القرض",
+            "groceries": "البقالة",
+            "eating_out": "المطاعم",
+            "subscriptions": "الاشتراكات",
+            "debt": "سداد الديون",
+            "misc": "متنوعات",
+            "financial": "مالية",
+            "savings": "مدخرات",
+            "investments": "استثمارات"
+        }
     },
     "Transactions": {
         "title": "المعاملات",
@@ -418,5 +447,30 @@
         "description": "ميزانية مشتركة للعائلات والأصدقاء",
         "signIn": "تسجيل الدخول",
         "signUp": "إنشاء حساب"
+    },
+    "RoleSelection": {
+        "welcomeBack": "مرحباً بعودتك، {name}",
+        "selectAccount": "اختر حساباً للمتابعة.",
+        "supportAdmin": "مسؤول الدعم",
+        "supportAdminDesc": "الوصول إلى الإحصائيات العامة، إدارة المستخدمين، وعرض بيانات مساحات العمل.",
+        "enterAdmin": "دخول لوحة الإدارة",
+        "personalWorkspaces": "مساحات العمل الشخصية",
+        "personalWorkspacesDesc": "إدارة ميزانياتك المشتركة، المعاملات، والتقارير المالية.",
+        "enterWorkspaces": "دخول المساحات"
+    },
+    "Setup": {
+        "title": "إعداد سريع",
+        "description": "لنجهز مساحة عملك في 3 خطوات بسيطة.",
+        "addAccounts": "إضافة الحسابات",
+        "addAccountsDesc": "ربط حساباتك البنكية، النقدية، أو التوفير.",
+        "addFirstAccount": "إضافة أول حساب",
+        "accountAdded": "تمت إضافة الحساب",
+        "setUpCategories": "إعداد الفئات",
+        "setUpCategoriesDesc": "إنشاء هيكل مصاريفك.",
+        "useRecommended": "استخدام الفئات الموصى بها",
+        "categoriesReady": "الفئات جاهزة",
+        "allSet": "أنت جاهز!",
+        "allSetDesc": "مساحة عملك جاهزة. لنذهب إلى لوحة التحكم.",
+        "goToDashboard": "الذهاب إلى لوحة التحكم"
     }
 }

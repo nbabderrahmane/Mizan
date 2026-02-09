@@ -15,13 +15,17 @@ import { useTranslations } from "next-intl";
 interface AccountsPageClientProps {
     workspaceId: string;
     accounts: AccountWithBalance[];
+    members: { user_id: string; first_name: string | null; last_name: string | null; email: string }[];
     canManage: boolean;
+    workspaceType: string;
 }
 
 export function AccountsPageClient({
     workspaceId,
     accounts,
+    members,
     canManage,
+    workspaceType,
 }: AccountsPageClientProps) {
     const t = useTranslations("Accounts");
     const common = useTranslations("Common");
@@ -69,11 +73,13 @@ export function AccountsPageClient({
                 onReconcile={handleReconcile}
                 onArchive={canManage ? handleArchive : undefined}
                 workspaceId={workspaceId}
+                members={members}
             />
 
             {canManage && (
                 <CreateAccountDialog
                     workspaceId={workspaceId}
+                    workspaceType={workspaceType}
                     open={isCreateOpen}
                     onOpenChange={setIsCreateOpen}
                     onSuccess={() => router.refresh()}
